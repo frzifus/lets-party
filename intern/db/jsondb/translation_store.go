@@ -2,38 +2,68 @@ package jsondb
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
+	"io/ioutil"
+	"os"
+	"sync"
 
 	"github.com/frzifus/lets-party/intern/model"
 )
 
-func NewTranslationStore(filename string) *TranslationStore {
-	return &TranslationStore{
+func NewTranslationStore(filename string) (*TranslationStore, error) {
+	store := &TranslationStore{
+		filename:   filename,
 		byLanguage: make(map[string]model.Translation),
 	}
+	if err := store.loadFromFile(); err != nil {
+		return nil, err
+	}
+	return store, nil
 }
 
 type TranslationStore struct {
+	mu sync.RWMutex
+
+	filename   string
 	byLanguage map[string]model.Translation
 }
 
-func (s *TranslationStore) ListLanguages(context.Context) ([]string, error) {
-	return []string{"en", "de"}, nil
+func (t *TranslationStore) ListLanguages(context.Context) ([]string, error) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	res := make([]string, len(t.byLanguage))
+	i := 0
+	for lang := range t.byLanguage {
+		res[i] = lang
+		i++
+	}
+	return res, nil
 }
 
-func (s *TranslationStore) ByLanguage(_ context.Context, l string) (*model.Translation, error) {
-	return &model.Translation{
-		Greeting:       "Hello {{.Name}}",
-		WelcomeMessage: "Welcome to the Party!",
-		GuestForm: model.TranslationGuestForm{
-			LabelInputFirstname: "Firstname",
-			LabelInputLastname: "Lastname",
-			LabelSelectDiet: "Diet",
-			LabelButtonSubmit: "Submit",
-			SelectOptionsDiet: []string{
-				"Vegan",
-				"Vegetarian",
-				"No matter",
-			},
-		},
-	}, nil
+func (t *TranslationStore) ByLanguage(_ context.Context, l string) (*model.Translation, error) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	lang, ok := t.byLanguage[l]
+	if !ok {
+		return nil, errors.New("missing translation")
+	}
+	return &lang, nil
+}
+
+func (t *TranslationStore) loadFromFile() error {
+	if _, err := os.Stat(t.filename); os.IsNotExist(err) {
+		// File does not exist, no guests to load
+		return nil
+	}
+
+	fileData, err := ioutil.ReadFile(t.filename)
+	if err != nil {
+		return err
+	}
+
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	return json.Unmarshal(fileData, &t.byLanguage)
 }

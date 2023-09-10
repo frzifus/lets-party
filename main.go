@@ -34,13 +34,15 @@ func main() {
 		fmt.Printf("Firstname %s, Lastname %s \n", g.Firstname, g.Lastname)
 	}
 
+	translationStore, _ := jsondb.NewTranslationStore("testdata/translations.json")
+
 	srv := &http.Server{
 		Addr: addr,
 		Handler: server.NewServer(
 			serviceName,
 			jsondb.NewInvitationStore("invites.json"),
 			guestsStore,
-			jsondb.NewTranslationStore("translations.json"),
+			translationStore,
 		),
 	}
 

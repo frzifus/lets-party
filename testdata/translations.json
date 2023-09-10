@@ -1,0 +1,32 @@
+{
+    "en": {
+        "greeting": "Hello, {{.Name}}!",
+        "welcome_message": "Welcome to our website.",
+        "guest_form": {
+            "label_input_firstname": "Firstname",
+            "label_input_lastname": "Lastname",
+            "label_select_diet": "Diet",
+            "label_button_submit": "Submit",
+            "select_options_diet": [
+                "Vegan",
+                "Vegetarian",
+                "No matter"
+            ]
+        }
+    },
+    "de": {
+        "greeting": "Hallo {{.Name}}!",
+        "welcome_message": "Guten Tag!",
+        "guest_form": {
+            "label_input_firstname": "Vorname",
+            "label_input_lastname": "Nachname",
+            "label_select_diet": "Ernährung",
+            "label_button_submit": "Abschicken",
+            "select_options_diet": [
+                "Vegan",
+                "Vegetarisch",
+                "Egal"
+            ]
+        }
+    }
+}
