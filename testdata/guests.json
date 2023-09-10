@@ -1,0 +1,22 @@
+{
+  "39a502ac-ba10-430d-99ac-e0955eccb73b": {
+    "ID": "39a502ac-ba10-430d-99ac-e0955eccb73b",
+    "CreatedAt": "2023-09-10T16:55:04.061919457+02:00",
+    "UpdatedAt": null,
+    "Firstname": "Moritz",
+    "Lastname": "Fleck",
+    "Child": true,
+    "DietaryCategory": 3,
+    "InvitationStatus": 0
+  },
+  "42a7b4d3-25c6-431f-8930-f611c16103e6": {
+    "ID": "42a7b4d3-25c6-431f-8930-f611c16103e6",
+    "CreatedAt": "2023-09-10T16:55:04.061919457+02:00",
+    "UpdatedAt": null,
+    "Firstname": "Serious",
+    "Lastname": "Sam",
+    "Child": false,
+    "DietaryCategory": 3,
+    "InvitationStatus": 3
+  }
+}
