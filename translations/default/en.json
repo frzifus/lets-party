@@ -1,0 +1,5 @@
+{
+    "greeting": "Hello, {{.Name}}!",
+    "welcome_message": "Welcome to our website."
+}
+

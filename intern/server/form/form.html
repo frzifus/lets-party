@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{.Title}}</title>
+</head>
+<body>
+    <h1>{{.translation.Greeting}}</h1>
+    <h2>{{.translation.WelcomeMessage}}</h2>
+    <form action="/{{.id}}/submit" method="post">
+        <label for="uuid">UUID:</label>
+        <input type="text" id="uuid" name="uuid" required>
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>

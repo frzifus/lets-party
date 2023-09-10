@@ -1,0 +1,4 @@
+{
+    "greeting": "Hallo {{.Name}}!",
+    "welcome_message": "Guten Tag!"
+}
