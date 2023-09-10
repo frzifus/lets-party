@@ -1,0 +1,37 @@
+{{ define "GUEST_INPUT" }}
+
+<input
+  type="text"
+  name="{{.ID}}.Firstname"
+  id="{{.ID}}.Firstname"
+  class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+  value="{{.Firstname}}"
+  required
+/>
+<input
+  type="text"
+  name="{{.ID}}.Lastname"
+  id="{{.ID}}.Lastname"
+  class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+  value="{{.Lastname}}"
+  required
+/>
+<select
+  name="{{.ID}}.diet"
+  autocomplete="diet-name"
+  class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+  value="{{.Diet}}"
+>
+  <option value="" disabled selected></option>
+  {{ range .translation.GuestForm.SelectOptionsDiet }}
+  <option value="{{.}}">{{.}}</option>
+  {{ end }}
+</select>
+<input
+  name="{{.ID}}.child"
+  type="checkbox"
+  class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600 justify-self-center"
+  {{if.Child}}checked{{end}}
+/>
+
+{{ end }}

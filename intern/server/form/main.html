@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{.Title}}</title>
+    <script src="https://unpkg.com/htmx.org@1.9.5"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="flex flex-col min-h-screen">
+    <h1>{{ .translation.Greeting}}</h1>
+    <h2>{{ .translation.GuestForm.LabelInputFirstname}}</h2>
+    <main class="flex-auto p-5">{{ template "GUEST_FORM" .}}</main>
+    {{ template "FOOTER" .}}
+  </body>
+</html>
