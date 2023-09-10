@@ -24,5 +24,16 @@ func (s *TranslationStore) ByLanguage(_ context.Context, l string) (*model.Trans
 	return &model.Translation{
 		Greeting:       "Hello {{.Name}}",
 		WelcomeMessage: "Welcome to the Party!",
+		GuestForm: model.TranslationGuestForm{
+			LabelInputFirstname: "Firstname",
+			LabelInputLastname: "Lastname",
+			LabelSelectDiet: "Diet",
+			LabelButtonSubmit: "Submit",
+			SelectOptionsDiet: []string{
+				"Vegan",
+				"Vegetarian",
+				"No matter",
+			},
+		},
 	}, nil
 }
