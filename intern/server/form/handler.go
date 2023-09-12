@@ -16,10 +16,11 @@ import (
 var form embed.FS
 
 func NewProcessor(iStore db.InvitationStore, tStore db.TranslationStore, gStore db.GuestStore) *Processor {
+	coreTemplates := []string{ "main.html", "footer.html" }
 
 	return &Processor{
-		tmplForm: template.Must(template.ParseFS(form, "form.html")),
-		tmplLang: template.Must(template.ParseFS(form, "language.html")),
+		tmplForm: template.Must(template.ParseFS(form, append(coreTemplates, "guest-form.html")...)),
+		tmplLang: template.Must(template.ParseFS(form, append(coreTemplates, "language.html")...)),
 		iStore:   iStore,
 		gStore:   gStore,
 		tStore:   tStore,
@@ -88,7 +89,7 @@ func (p *Processor) Render(c *gin.Context) {
 		},
 	}
 
-	template.Must(template.ParseFS(form, "main.html", "guest-form.html", "footer.html")).Execute(c.Writer, gin.H{
+	p.tmplForm.Execute(c.Writer, gin.H{
 		"id":          id,
 		"meta":        meta,
 		"translation": translation,
