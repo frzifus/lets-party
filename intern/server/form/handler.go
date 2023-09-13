@@ -2,7 +2,7 @@ package form
 
 import (
 	"embed"
-	"text/template"
+	"html/template"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -16,9 +16,11 @@ import (
 var form embed.FS
 
 func NewProcessor(iStore db.InvitationStore, tStore db.TranslationStore, gStore db.GuestStore) *Processor {
+	coreTemplates := []string{ "main.html", "footer.html" }
+
 	return &Processor{
-		tmplForm: template.Must(template.ParseFS(form, "form.html")),
-		tmplLang: template.Must(template.ParseFS(form, "language.html")),
+		tmplForm: template.Must(template.ParseFS(form, append(coreTemplates, "guest-form.html")...)),
+		tmplLang: template.Must(template.ParseFS(form, append(coreTemplates, "language.html")...)),
 		iStore:   iStore,
 		gStore:   gStore,
 		tStore:   tStore,
@@ -87,14 +89,34 @@ func (p *Processor) Render(c *gin.Context) {
 		},
 	}
 
-	if err := p.tmplForm.Execute(c.Writer, gin.H{
+	p.tmplForm.Execute(c.Writer, gin.H{
 		"id":          id,
 		"meta":        meta,
 		"translation": translation,
 		"guests":      guests,
-	}); err != nil {
-		panic("ups")
+	})
+}
+
+func (p *Processor) RenderGuestInputBlock(c *gin.Context, id uuid.UUID) {
+	// TODO: get current language from query parameter
+	translation, err := p.tStore.ByLanguage(c, "en")
+	if err != nil {
+		panic(err)
 	}
+
+	/**
+	 * TODO: Some options
+	 *	- remove the wrapperTemplate, directly render guest-input and remove the define from guest-put
+	 *	- make it possible to use the guest-input within the guest-form inside the guest-loop
+	 *		- this currently fails because without https://gohugo.io/functions/dict/ it seems it is not possible to pass both the $root data and the $guest data (".") to the template
+	 *		- missing $.translation data
+	 *		- https://stackoverflow.com/questions/18276173/calling-a-template-with-several-pipeline-parameters
+	 */
+	wrapperTemplate, _ := template.New("wrapper").Parse("{{ block \"GUEST_INPUT\" .}} {{ end }}")
+	template.Must(wrapperTemplate.ParseFS(form, "guest-input.html")).Execute(c.Writer, gin.H{
+		"ID":          id,
+		"translation": translation,
+	})
 }
 
 type Metadata struct {
