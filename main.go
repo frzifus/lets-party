@@ -5,8 +5,9 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/google/uuid"
 	"net/http"
+
+	"github.com/google/uuid"
 
 	"github.com/frzifus/lets-party/intern/db/jsondb"
 	"github.com/frzifus/lets-party/intern/model"
@@ -35,12 +36,17 @@ func main() {
 	}
 
 	translationStore, _ := jsondb.NewTranslationStore("testdata/translations.json")
+	invitationStore, _ := jsondb.NewInvitationStore("testdata/invitations.json")
+	invitations, _ := invitationStore.ListInvitations(context.Background())
+	for i, invite := range invitations {
+		fmt.Printf("invitation(%d): %s with guests: %s", i, invite.ID, invite.GuestIDs)
+	}
 
 	srv := &http.Server{
 		Addr: addr,
 		Handler: server.NewServer(
 			serviceName,
-			jsondb.NewInvitationStore("invites.json"),
+			invitationStore,
 			guestsStore,
 			translationStore,
 		),
