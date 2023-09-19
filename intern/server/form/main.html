@@ -8,8 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="flex flex-col min-h-screen">
-    <h1>{{ .translation.Greeting}}</h1>
-    <h2>{{ .translation.GuestForm.LabelInputFirstname}}</h2>
+    {{ template "HEADER" .}}
     <main class="flex-auto p-5">
       {{ template "CONTENT" .}}
     </main>
