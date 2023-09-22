@@ -17,10 +17,18 @@ var form embed.FS
 
 func NewProcessor(iStore db.InvitationStore, tStore db.TranslationStore, gStore db.GuestStore) *Processor {
 	coreTemplates := []string{ "main.html", "footer.html" }
+	formTemplates := []string{
+		"guest-form.header.html",
+		"greeting.html",
+		"location.html",
+		"date.html",
+		"guest-form.html",
+	}
+	languageTemplates := []string{ "language.html", "language.header.html" }
 
 	return &Processor{
-		tmplForm: template.Must(template.ParseFS(form, append(coreTemplates, "guest-form.html")...)),
-		tmplLang: template.Must(template.ParseFS(form, append(coreTemplates, "language.html")...)),
+		tmplForm: template.Must(template.ParseFS(form, append(coreTemplates, formTemplates...)...)),
+		tmplLang: template.Must(template.ParseFS(form, append(coreTemplates, languageTemplates...)...)),
 		iStore:   iStore,
 		gStore:   gStore,
 		tStore:   tStore,
@@ -76,7 +84,7 @@ func (p *Processor) Render(c *gin.Context) {
 		}
 		guests = append(guests, g)
 	}
-
+	
 	meta := &Metadata{
 		Location: Location{
 			ZipCode:      "1337",
@@ -87,6 +95,7 @@ func (p *Processor) Render(c *gin.Context) {
 			Longitudes:   106.6333,
 			Latitudes:    10.8167,
 		},
+		Date:					time.Date(2023, 12, 24, 0, 0, 0, 0, time.Local),
 	}
 
 	p.tmplForm.Execute(c.Writer, gin.H{

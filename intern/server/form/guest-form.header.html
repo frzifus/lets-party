@@ -1,0 +1,11 @@
+{{ define "HEADER" }}
+
+<header class="w-full flex flex-col items-center gap-4">
+  {{ template "GREETING" .translation}}
+  <div class="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
+    {{ template "LOCATION" .meta.Location}}
+    {{ template "DATE" .meta.Date}}
+  </div>
+</header>
+
+{{ end }}
