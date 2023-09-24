@@ -61,6 +61,19 @@ func (i *InvitationStore) CreateInvitation(ctx context.Context, guestIDs ...uuid
 	}, nil
 }
 
+func (i *InvitationStore) UpdateInvitation(ctx context.Context, invite *model.Invitation) error {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+	if _, ok := i.invitations[invite.ID]; !ok {
+		return fmt.Errorf("could not find invite")
+	}
+	i.invitations[invite.ID] = invite.GuestIDs
+	if err := i.saveToFile(); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (i *InvitationStore) ListInvitations(ctx context.Context) ([]*model.Invitation, error) {
 	i.mu.RLock()
 	defer i.mu.RUnlock()

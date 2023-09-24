@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 
 	"github.com/frzifus/lets-party/intern/db"
-	"github.com/frzifus/lets-party/intern/model"
 	"github.com/frzifus/lets-party/intern/server/form"
 )
 
@@ -34,32 +34,36 @@ type Server struct {
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	mux := gin.New()
-	mux.Use(gin.Logger(), gin.Recovery(), otelgin.Middleware(s.serviceName))
-	mux.NoRoute(func(c *gin.Context) {
-		c.JSON(http.StatusNotFound, gin.H{"code": "PAGE_NOT_FOUND", "message": "Page not found"})
-	})
+	mux.Use(gin.Logger(), gin.Recovery(), inviteExists(s.iStore), otelgin.Middleware(s.serviceName))
+	mux.NoRoute(notFound)
 
-	mux.GET("/:uuid", form.NewProcessor(s.iStore, s.tStore, s.gStore).Render)
-
-	// TODO
-	mux.POST("/:uuid/submit", func(c *gin.Context) { c.String(http.StatusOK, "thanks!") })
-
-	mux.PUT("/:uuid/guests", func(c *gin.Context) {
-		if c.Request.Header.Get("Hx-Request") == "true" {
-			uuid, err := s.gStore.CreateGuest(c, &model.Guest{})
-			if err != nil {
-				panic("Could not create guest")
-			}
-	
-			form.NewProcessor(s.iStore, s.tStore, s.gStore).RenderGuestInputBlock(c, uuid)
-			return
-		}
-
-		// TODO: create guest with data from body
-		c.String(http.StatusOK, "did not create user")
-	})
+	guestHandler := form.NewGuestHandler(s.iStore, s.tStore, s.gStore)
+	mux.GET("/:uuid", guestHandler.RenderForm)
+	mux.PUT("/:uuid/guests", guestHandler.Create)
+	mux.DELETE("/:uuid/guests", guestHandler.Create)
+	mux.POST("/:uuid/submit", guestHandler.Submit)
+	// mux.PATCH("/:uuid/guests", guestHandler.Update)
 
 	mux.GET("/:uuid/guests", func(c *gin.Context) { c.String(http.StatusOK, "thanks!") })
 
 	mux.ServeHTTP(w, r)
+}
+
+func inviteExists(db db.InvitationStore) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id, err := uuid.Parse(c.Param("uuid"))
+		if err != nil {
+			notFound(c)
+			return
+		}
+		if _, err := db.GetInvitationByID(c.Request.Context(), id); err != nil {
+			notFound(c)
+			return
+		}
+		c.Next()
+	}
+}
+
+func notFound(c *gin.Context) {
+	c.JSON(http.StatusNotFound, gin.H{"code": "PAGE_NOT_FOUND", "message": "Page not found"})
 }

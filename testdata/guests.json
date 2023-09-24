@@ -1,22 +1,22 @@
 {
   "39a502ac-ba10-430d-99ac-e0955eccb73b": {
-    "ID": "39a502ac-ba10-430d-99ac-e0955eccb73b",
-    "CreatedAt": "2023-09-10T16:55:04.061919457+02:00",
-    "UpdatedAt": null,
-    "Firstname": "Mad",
-    "Lastname": "Max",
-    "Child": true,
-    "DietaryCategory": 3,
-    "InvitationStatus": 0
+    "id": "39a502ac-ba10-430d-99ac-e0955eccb73b",
+    "created_at": "2023-09-10T16:55:04.061919457+02:00",
+    "updated_at": "2023-09-24T10:39:27.746167812+02:00",
+    "firstname": "Mad",
+    "lastname": "Max",
+    "is_child": false,
+    "dietary_category": 0,
+    "invitation_status": 0
   },
   "42a7b4d3-25c6-431f-8930-f611c16103e6": {
-    "ID": "42a7b4d3-25c6-431f-8930-f611c16103e6",
-    "CreatedAt": "2023-09-10T16:55:04.061919457+02:00",
-    "UpdatedAt": null,
-    "Firstname": "Serious",
-    "Lastname": "Sam",
-    "Child": false,
-    "DietaryCategory": 3,
-    "InvitationStatus": 3
+    "id": "42a7b4d3-25c6-431f-8930-f611c16103e6",
+    "created_at": "2023-09-10T16:55:04.061919457+02:00",
+    "updated_at": "2023-09-24T10:39:27.746697478+02:00",
+    "firstname": "Serious",
+    "lastname": "Sam",
+    "is_child": false,
+    "dietary_category": 0,
+    "invitation_status": 0
   }
 }
