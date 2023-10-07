@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+	"log/slog"
+	"bytes"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -35,6 +37,7 @@ func NewGuestHandler(iStore db.InvitationStore, tStore db.TranslationStore, gSto
 		iStore:   iStore,
 		gStore:   gStore,
 		tStore:   tStore,
+		logger:		slog.Default().WithGroup("http"),
 	}
 }
 
@@ -44,6 +47,7 @@ type GuestHandler struct {
 	iStore   db.InvitationStore
 	gStore   db.GuestStore
 	tStore   db.TranslationStore
+	logger	 *slog.Logger
 }
 
 func (p *GuestHandler) RenderForm(c *gin.Context) {
@@ -101,7 +105,12 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 		Date: time.Date(2023, 12, 24, 0, 0, 0, 0, time.Local),
 	}
 
-	// TODO: render translation
+	translation.Greeting, err = evalTemplate(translation.Greeting, guests)
+	if err != nil {
+		p.logger.ErrorContext(c.Request.Context(), "could not populate translation", "error", err)
+		c.String(http.StatusInternalServerError, "could not render translation")
+		return
+	}
 
 	p.tmplForm.Execute(c.Writer, gin.H{
 		"id":          id,
@@ -213,11 +222,23 @@ func (p *GuestHandler) renderGuestInputBlock(c *gin.Context, id uuid.UUID) {
 	//	- this currently fails because without https://gohugo.io/functions/dict/ it seems it is not possible to pass both the $root data and the $guest data (".") to the template
 	//	- missing $.translation data
 	//	- https://stackoverflow.com/questions/18276173/calling-a-template-with-several-pipeline-parameters
-	wrapperTemplate, _ := template.New("wrapper").Parse("{{ block \"GUEST_INPUT\" .}} {{ end }}")
+	wrapperTemplate, _ := template.New("wrapper").Parse("{{ template \"GUEST_INPUT\" .}}")
 	template.Must(wrapperTemplate.ParseFS(templates, "guest-input.html")).Execute(c.Writer, gin.H{
 		"ID":          id,
 		"translation": translation,
 	})
+}
+
+func evalTemplate(msg string, data any) (string, error) {
+	t, err := template.New("tmp").Parse(msg)
+	if err != nil {
+		return "", err
+	}
+	var buf bytes.Buffer
+	if err := t.Execute(&buf, data); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
 }
 
 type Metadata struct {

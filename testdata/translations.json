@@ -1,6 +1,6 @@
 {
   "en": {
-    "greeting": "Hello, {{.Name}}!",
+    "greeting": "Hello, {{range $val := .}}{{$val.Firstname}} {{end}}!",
     "welcome_message": "Welcome to our website.",
     "guest_form": {
       "label_input_firstname": "Firstname",
@@ -11,7 +11,7 @@
     }
   },
   "de": {
-    "greeting": "Hallo {{.Name}}!",
+    "greeting": "Hallo {{range $val := .}}{{$val.Firstname}} {{end}}!",
     "welcome_message": "Guten Tag!",
     "guest_form": {
       "label_input_firstname": "Vorname",
