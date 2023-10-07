@@ -1,4 +1,4 @@
-package form
+package templates
 
 import (
 	"embed"
@@ -16,7 +16,7 @@ import (
 )
 
 //go:embed *.html
-var form embed.FS
+var templates embed.FS
 
 func NewGuestHandler(iStore db.InvitationStore, tStore db.TranslationStore, gStore db.GuestStore) *GuestHandler {
 	coreTemplates := []string{"main.html", "footer.html"}
@@ -30,8 +30,8 @@ func NewGuestHandler(iStore db.InvitationStore, tStore db.TranslationStore, gSto
 	languageTemplates := []string{"language.html", "language.header.html"}
 
 	return &GuestHandler{
-		tmplForm: template.Must(template.ParseFS(form, append(coreTemplates, formTemplates...)...)),
-		tmplLang: template.Must(template.ParseFS(form, append(coreTemplates, languageTemplates...)...)),
+		tmplForm: template.Must(template.ParseFS(templates, append(coreTemplates, formTemplates...)...)),
+		tmplLang: template.Must(template.ParseFS(templates, append(coreTemplates, languageTemplates...)...)),
 		iStore:   iStore,
 		gStore:   gStore,
 		tStore:   tStore,
@@ -214,7 +214,7 @@ func (p *GuestHandler) renderGuestInputBlock(c *gin.Context, id uuid.UUID) {
 	//	- missing $.translation data
 	//	- https://stackoverflow.com/questions/18276173/calling-a-template-with-several-pipeline-parameters
 	wrapperTemplate, _ := template.New("wrapper").Parse("{{ block \"GUEST_INPUT\" .}} {{ end }}")
-	template.Must(wrapperTemplate.ParseFS(form, "guest-input.html")).Execute(c.Writer, gin.H{
+	template.Must(wrapperTemplate.ParseFS(templates, "guest-input.html")).Execute(c.Writer, gin.H{
 		"ID":          id,
 		"translation": translation,
 	})
