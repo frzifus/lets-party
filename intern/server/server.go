@@ -1,10 +1,13 @@
 package server
 
 import (
+	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	sloggin "github.com/samber/slog-gin"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 
 	"github.com/frzifus/lets-party/intern/db"
@@ -18,6 +21,7 @@ func NewServer(
 	tStore db.TranslationStore,
 ) *Server {
 	return &Server{
+		logger:      slog.Default().WithGroup("http"),
 		serviceName: serviceName,
 		iStore:      iStore,
 		gStore:      gStore,
@@ -27,6 +31,7 @@ func NewServer(
 
 type Server struct {
 	serviceName string
+	logger      *slog.Logger
 	iStore      db.InvitationStore
 	gStore      db.GuestStore
 	tStore      db.TranslationStore
@@ -34,9 +39,11 @@ type Server struct {
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	mux := gin.New()
-	mux.Use(gin.Logger(), gin.Recovery(), inviteExists(s.iStore), otelgin.Middleware(s.serviceName))
+	if os.Getenv("GIN_MODE") == "" {
+		gin.SetMode(gin.ReleaseMode)
+	}
+	mux.Use(sloggin.New(s.logger), gin.Recovery(), inviteExists(s.iStore), otelgin.Middleware(s.serviceName))
 	mux.NoRoute(notFound)
-
 	guestHandler := templates.NewGuestHandler(s.iStore, s.tStore, s.gStore)
 	mux.GET("/:uuid", guestHandler.RenderForm)
 	mux.PUT("/:uuid/guests", guestHandler.Create)
