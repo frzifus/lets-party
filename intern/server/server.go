@@ -8,7 +8,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 
 	"github.com/frzifus/lets-party/intern/db"
-	"github.com/frzifus/lets-party/intern/server/form"
+	"github.com/frzifus/lets-party/intern/server/templates"
 )
 
 func NewServer(
@@ -37,7 +37,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	mux.Use(gin.Logger(), gin.Recovery(), inviteExists(s.iStore), otelgin.Middleware(s.serviceName))
 	mux.NoRoute(notFound)
 
-	guestHandler := form.NewGuestHandler(s.iStore, s.tStore, s.gStore)
+	guestHandler := templates.NewGuestHandler(s.iStore, s.tStore, s.gStore)
 	mux.GET("/:uuid", guestHandler.RenderForm)
 	mux.PUT("/:uuid/guests", guestHandler.Create)
 	mux.DELETE("/:uuid/guests", guestHandler.Create)
