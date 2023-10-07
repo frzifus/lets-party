@@ -8,10 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="flex flex-col min-h-screen">
-    {{ template "HEADER" .}}
-    <main class="flex-auto p-5">
-      {{ template "CONTENT" .}}
-    </main>
-    {{ template "FOOTER" .}}
+    {{ template "HEADER" .}} {{ template "CONTENT" .}} {{ template "FOOTER" .}}
   </body>
 </html>

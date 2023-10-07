@@ -22,17 +22,19 @@ var templates embed.FS
 
 func NewGuestHandler(iStore db.InvitationStore, tStore db.TranslationStore, gStore db.GuestStore) *GuestHandler {
 	coreTemplates := []string{"main.html", "footer.html"}
-	formTemplates := []string{
-		"guest-form.header.html",
+	invitationTemplates := []string{
+		"invitation.header.html",
+		"invitation.content.html",
 		"greeting.html",
 		"location.html",
 		"date.html",
 		"guest-form.html",
+		"map.html",
 	}
-	languageTemplates := []string{"language.html", "language.header.html"}
+	languageTemplates := []string{"language.header.html", "language.content.html"}
 
 	return &GuestHandler{
-		tmplForm: template.Must(template.ParseFS(templates, append(coreTemplates, formTemplates...)...)),
+		tmplForm: template.Must(template.ParseFS(templates, append(coreTemplates, invitationTemplates...)...)),
 		tmplLang: template.Must(template.ParseFS(templates, append(coreTemplates, languageTemplates...)...)),
 		iStore:   iStore,
 		gStore:   gStore,

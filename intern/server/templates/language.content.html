@@ -1,0 +1,10 @@
+{{ define "CONTENT" }}
+
+<main class="flex-auto p-5">
+  <h1>T</h1>
+  {{range $i, $lang := .languages}}
+  <a href="{{$.id}}?lang={{$lang}}">{{$lang}}</a>
+  {{end}}
+</main>
+
+{{ end }}

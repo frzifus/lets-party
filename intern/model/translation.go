@@ -4,6 +4,7 @@ type Translation struct {
 	Greeting       string `json:"greeting"`
 	WelcomeMessage string `json:"welcome_message"`
 	GuestForm TranslationGuestForm `json:"guest_form"`
+	Location	LocationSection `json:"location"`
 }
 
 type TranslationGuestForm struct {
@@ -12,4 +13,9 @@ type TranslationGuestForm struct {
 	LabelSelectDiet string  `json:"label_select_diet"`
 	LabelButtonSubmit string  `json:"label_button_submit"`
 	SelectOptionsDiet []string `json:"select_options_diet"`
+}
+
+type LocationSection struct {
+	Title string `json:"title"`
+	OpenExternally string `json:"openExternally"`
 }
