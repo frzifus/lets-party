@@ -24,6 +24,8 @@ func NewGuestHandler(iStore db.InvitationStore, tStore db.TranslationStore, gSto
 	coreTemplates := []string{"main.html", "footer.html"}
 	invitationTemplates := []string{
 		"invitation.header.html",
+		"invitation.nav.html",
+		"invitation.hero.html",
 		"invitation.content.html",
 		"greeting.html",
 		"location.html",

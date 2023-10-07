@@ -10,8 +10,12 @@
       "select_options_diet": ["Vegan", "Vegetarian", "No matter"]
     },
     "location": {
-      "title": "Location",
+      "title": "Map",
       "openExternally": "View Larger Map"
+    },
+    "navigation": {
+      "guests": "Guests",
+      "map": "Map"
     }
   },
   "de": {
@@ -25,8 +29,12 @@
       "select_options_diet": ["Vegan", "Vegetarisch", "Egal"]
     },
     "location": {
-      "title": "Location",
+      "title": "Karte",
       "openExternally": "Größere Ansicht"
+    },
+    "navigation": {
+      "guests": "Gäste",
+      "map": "Karte"
     }
   }
 }
