@@ -8,6 +8,10 @@
       "label_select_diet": "Diet",
       "label_button_submit": "Submit",
       "select_options_diet": ["Vegan", "Vegetarian", "No matter"]
+    },
+    "location": {
+      "title": "Location",
+      "openExternally": "View Larger Map"
     }
   },
   "de": {
@@ -19,6 +23,10 @@
       "label_select_diet": "Ernährung",
       "label_button_submit": "Abschicken",
       "select_options_diet": ["Vegan", "Vegetarisch", "Egal"]
+    },
+    "location": {
+      "title": "Location",
+      "openExternally": "Größere Ansicht"
     }
   }
 }

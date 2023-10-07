@@ -1,14 +1,21 @@
-{{ define "CONTENT" }}
+{{ define "GUEST_FORM" }}
 
 <form hx-post="{{.id}}/submit" class="flex flex-col gap-5">
-  <div id="guest-form-input-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+  <div
+    id="guest-form-input-container"
+    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4"
+  >
     {{ range .guests }}
-    <div class="flex flex-1 md:flex-none flex-col gap-4 p-4 rounded-lg border border-gray-900/10">
-      <div
-        class="grid grid-cols-1 md:grid-cols-2 gap-4 box-border md:w-fit"
-      >
+    <div
+      class="flex flex-1 md:flex-none flex-col gap-4 p-4 rounded-lg border border-gray-900/10"
+    >
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 box-border md:w-fit">
         <div>
-          <label for="{{.ID}}.Firstname" class="block text-sm font-medium leading-6 text-gray-900">{{ $.translation.GuestForm.LabelInputFirstname }}</label>
+          <label
+            for="{{.ID}}.Firstname"
+            class="block text-sm font-medium leading-6 text-gray-900"
+            >{{ $.translation.GuestForm.LabelInputFirstname }}</label
+          >
           <input
             type="text"
             name="{{.ID}}.firstname"
@@ -19,7 +26,11 @@
           />
         </div>
         <div>
-          <label for="{{.ID}}.Lastname" class="block text-sm font-medium leading-6 text-gray-900">{{ $.translation.GuestForm.LabelInputLastname }}</label>
+          <label
+            for="{{.ID}}.Lastname"
+            class="block text-sm font-medium leading-6 text-gray-900"
+            >{{ $.translation.GuestForm.LabelInputLastname }}</label
+          >
           <input
             type="text"
             name="{{.ID}}.lastname"
@@ -30,7 +41,11 @@
           />
         </div>
         <div>
-          <label for="{{.ID}}.diet" class="block text-sm font-medium leading-6 text-gray-900">{{ $.translation.GuestForm.LabelSelectDiet }}</label>
+          <label
+            for="{{.ID}}.diet"
+            class="block text-sm font-medium leading-6 text-gray-900"
+            >{{ $.translation.GuestForm.LabelSelectDiet }}</label
+          >
           <select
             id="{{.ID}}.dietary_category"
             name="{{.ID}}.dietary_category"
@@ -47,7 +62,11 @@
       <div>
         <div class="relative flex gap-x-3">
           <div class="text-sm leading-6">
-            <label for="{{.ID}}.child" class="block text-sm font-medium leading-6 text-gray-900">Child</label>
+            <label
+              for="{{.ID}}.child"
+              class="block text-sm font-medium leading-6 text-gray-900"
+              >Child</label
+            >
           </div>
           <div class="flex h-6 items-center">
             <input

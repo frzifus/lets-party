@@ -1,0 +1,31 @@
+{{ define "MAP" }}
+
+<div class="grid auto-cols-auto place-content-center gap-4">
+  <div class="grid place-content-center">
+    <h2
+      class="text-xl font-bold leading-7 text-gray-900 sm:truncate sm:text-2xl sm:tracking-tight"
+    >
+      {{ .translation.Location.Title }}
+    </h2>
+  </div>
+  <div class="grid place-content-center">
+    {{ template "LOCATION" .meta.Location }}
+  </div>
+  <div>
+    <iframe
+      width="425"
+      height="350"
+      src="https://www.openstreetmap.org/export/embed.html?bbox=6.078829765319825%2C50.762399922244114%2C6.105909347534181%2C50.77302620762615&amp;layer=mapnik&amp;marker=50.76771336664125%2C6.092369556427002"
+      style="border: 1px solid black"
+    ></iframe>
+    <small>
+      <a
+        href="https://www.openstreetmap.org/?mlat=50.7677&amp;mlon=6.0924#map=16/50.7677/6.0924"
+        target="_blank"
+      >
+        {{ .translation.Location.OpenExternally }}
+      </a>
+    </small>
+  </div>
+</div>
+{{ end }}
