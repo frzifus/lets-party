@@ -31,11 +31,11 @@ jobs:
       - name: Build and push Docker image
         run: |
           docker buildx create --use
-          docker buildx build \
+          docker buildx build --push -f Containerfile \
             --platform linux/amd64,linux/arm64 \
             -t ghcr.io/${{ github.repository_owner }}/lets-party:latest \
             .
-          docker buildx stop --name github-builder
+          docker buildx stop
 
       - name: Clean up
-        run: docker buildx rm --all --force
+        run: docker buildx rm
