@@ -186,19 +186,32 @@ func (p *GuestHandler) Create(c *gin.Context) {
 }
 
 func (p *GuestHandler) Delete(c *gin.Context) {
-	c.String(http.StatusNotImplemented, "did not delete user")
-	return
-	guest, err := p.gStore.GetGuestByID(c, uuid.Nil) // TODO: json, url value?
+	inviteID, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
-		panic("Could not create guest")
+		c.String(http.StatusBadRequest, "invalid invite ID")
+		return
+	}
+	guestID, err := uuid.Parse(c.Param("guestid"))
+	if err != nil {
+		c.String(http.StatusBadRequest, "invalid guest ID")
+		return
 	}
 
-	invite, err := p.iStore.GetInvitationByID(c.Request.Context(), uuid.MustParse(c.Param("uuid")))
+	guest, err := p.gStore.GetGuestByID(c.Request.Context(), guestID)
 	if err != nil {
-		panic("invite not found")
+		c.String(http.StatusNotFound, "user not found")
+		return
 	}
+
+	invite, err := p.iStore.GetInvitationByID(c.Request.Context(), inviteID)
+	if err != nil {
+		c.String(http.StatusNotFound, "user does not belong to an invitation")
+		return
+	}
+	// TODO: tx
 	invite.RemoveGuest(guest.ID)
 	p.iStore.UpdateInvitation(c.Request.Context(), invite)
+	c.Status(http.StatusAccepted)
 }
 
 func (p *GuestHandler) Update(c *gin.Context) {

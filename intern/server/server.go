@@ -47,7 +47,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	guestHandler := templates.NewGuestHandler(s.iStore, s.tStore, s.gStore)
 	mux.GET("/:uuid", guestHandler.RenderForm)
 	mux.PUT("/:uuid/guests", guestHandler.Create)
-	mux.DELETE("/:uuid/guests", guestHandler.Create)
+	mux.DELETE("/:uuid/guests/:guestid", guestHandler.Delete)
 	mux.POST("/:uuid/submit", guestHandler.Submit)
 	// mux.PATCH("/:uuid/guests", guestHandler.Update)
 
