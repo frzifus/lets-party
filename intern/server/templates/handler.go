@@ -96,15 +96,15 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 		guests = append(guests, g)
 	}
 
-	meta := &Metadata{
-		Location: Location{
+	metadata := &model.Event{
+		Location: &model.Location{
 			ZipCode:      "1337",
 			Street:       "Milky Way",
 			StreetNumber: "42",
 			City:         "Somewhere",
 			Country:      "Germany",
-			Longitudes:   106.6333,
-			Latitudes:    10.8167,
+			Longitude:   106.6333,
+			Latitude:    10.8167,
 		},
 		Date: time.Date(2023, 12, 24, 0, 0, 0, 0, time.Local),
 	}
@@ -118,7 +118,7 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 
 	p.tmplForm.Execute(c.Writer, gin.H{
 		"id":          id,
-		"meta":        meta,
+		"metadata":    metadata,
 		"translation": translation,
 		"guests":      guests,
 	})
@@ -256,19 +256,4 @@ func evalTemplate(msg string, data any) (string, error) {
 		return "", err
 	}
 	return buf.String(), nil
-}
-
-type Metadata struct {
-	Location Location
-	Date     time.Time
-}
-
-type Location struct {
-	Country      string
-	City         string
-	ZipCode      string
-	Street       string
-	StreetNumber string
-	Longitudes   float64
-	Latitudes    float64
 }
