@@ -9,5 +9,11 @@
   </head>
   <body class="flex flex-col min-h-screen">
     {{ template "HEADER" .}} {{ template "CONTENT" .}} {{ template "FOOTER" .}}
+    <script>
+      document.body.addEventListener("htmx:configRequest", function (event) {
+        let currentUrl = new URL(window.location.href);
+        event.detail.path += currentUrl.search;
+      });
+    </script>
   </body>
 </html>
