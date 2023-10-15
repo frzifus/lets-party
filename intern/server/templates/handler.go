@@ -1,14 +1,14 @@
 package templates
 
 import (
+	"bytes"
 	"embed"
 	"html/template"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
-	"log/slog"
-	"bytes"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -177,7 +177,7 @@ func (p *GuestHandler) Create(c *gin.Context) {
 		invite.GuestIDs = append(invite.GuestIDs, gID)
 		p.iStore.UpdateInvitation(c.Request.Context(), invite)
 
-		p.renderGuestInputBlock(c, gID)
+		p.renderGuestInputBlock(c, invite.ID, gID)
 		return
 	}
 
@@ -210,6 +210,7 @@ func (p *GuestHandler) Delete(c *gin.Context) {
 	}
 	// TODO: tx
 	invite.RemoveGuest(guest.ID)
+	p.gStore.DeleteGuest(c.Request.Context(), guest.ID)
 	p.iStore.UpdateInvitation(c.Request.Context(), invite)
 	c.Status(http.StatusAccepted)
 }
@@ -227,7 +228,7 @@ func (p *GuestHandler) Update(c *gin.Context) {
 	// c.String(http.StatusOK, "user update successful")
 }
 
-func (p *GuestHandler) renderGuestInputBlock(c *gin.Context, id uuid.UUID) {
+func (p *GuestHandler) renderGuestInputBlock(c *gin.Context, iID uuid.UUID, gID uuid.UUID) {
 	translation, err := p.tStore.ByLanguage(c, c.DefaultQuery("lang", "en"))
 	if err != nil {
 		panic(err)
@@ -241,8 +242,9 @@ func (p *GuestHandler) renderGuestInputBlock(c *gin.Context, id uuid.UUID) {
 	//	- https://stackoverflow.com/questions/18276173/calling-a-template-with-several-pipeline-parameters
 	wrapperTemplate, _ := template.New("wrapper").Parse("{{ template \"GUEST_INPUT\" .}}")
 	template.Must(wrapperTemplate.ParseFS(templates, "guest-input.html")).Execute(c.Writer, gin.H{
-		"ID":          id,
-		"translation": translation,
+		"invitationID": iID,
+		"ID":          	gID,
+		"translation": 	translation,
 	})
 }
 
