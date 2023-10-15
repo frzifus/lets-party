@@ -11,6 +11,7 @@ import (
 type GuestStore interface {
 	CreateGuest(context.Context, *model.Guest) (uuid.UUID, error)
 	UpdateGuest(context.Context, *model.Guest) error
+	DeleteGuest(context.Context, uuid.UUID) error
 	ListGuests(context.Context) ([]*model.Guest, error)
 	GetGuestByID(context.Context, uuid.UUID) (*model.Guest, error)
 }

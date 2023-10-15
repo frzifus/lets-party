@@ -140,3 +140,28 @@ func (g *GuestStore) loadFromFile() error {
 
 	return json.Unmarshal(fileData, &g.guests)
 }
+
+// DeleteGuest deletes an existing guest in the store and JSON file.
+func (g *GuestStore) DeleteGuest(ctx context.Context, guestID uuid.UUID) error {
+	if guestID == uuid.Nil {
+		return errors.New("guest ID is required for updating")
+	}
+
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	// Check if the guest exists in the store
+	if _, ok := g.guests[guestID]; !ok {
+		return errors.New("guest not found")
+	}
+
+	// Delete the guest from the store
+	delete(g.guests, guestID)
+
+	// Save the updated store to the JSON file
+	if err := g.saveToFile(); err != nil {
+		return err
+	}
+
+	return nil
+}
