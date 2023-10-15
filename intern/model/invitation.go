@@ -8,8 +8,8 @@ type Invitation struct {
 }
 
 func (i *Invitation) RemoveGuest(id uuid.UUID) {
-	for idx, id := range i.GuestIDs {
-		if id == id {
+	for idx, gid := range i.GuestIDs {
+		if id == gid {
 			i.GuestIDs = append(i.GuestIDs[:idx], i.GuestIDs[idx+1:]...)
 			break
 		}
