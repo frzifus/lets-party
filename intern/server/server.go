@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	sloggin "github.com/samber/slog-gin"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/frzifus/lets-party/intern/db"
 	"github.com/frzifus/lets-party/intern/server/templates"
@@ -42,14 +43,23 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if os.Getenv("GIN_MODE") == "" {
 		gin.SetMode(gin.ReleaseMode)
 	}
-	mux.Use(sloggin.New(s.logger), gin.Recovery(), inviteExists(s.iStore), otelgin.Middleware(s.serviceName))
+	mux.Use(
+		sloggin.NewWithConfig(s.logger,
+			sloggin.Config{
+				DefaultLevel:     slog.LevelInfo,
+				ClientErrorLevel: slog.LevelWarn,
+				ServerErrorLevel: slog.LevelError,
+			},
+		),
+		gin.Recovery(), inviteExists(s.iStore),
+		otelgin.Middleware(s.serviceName), slogAddTraceAttributes,
+	)
 	mux.NoRoute(notFound)
 	guestHandler := templates.NewGuestHandler(s.iStore, s.tStore, s.gStore)
 	mux.GET("/:uuid", guestHandler.RenderForm)
 	mux.PUT("/:uuid/guests", guestHandler.Create)
 	mux.DELETE("/:uuid/guests/:guestid", guestHandler.Delete)
 	mux.POST("/:uuid/submit", guestHandler.Submit)
-	// mux.PATCH("/:uuid/guests", guestHandler.Update)
 
 	mux.GET("/:uuid/guests", func(c *gin.Context) { c.String(http.StatusOK, "thanks!") })
 
@@ -73,4 +83,14 @@ func inviteExists(db db.InvitationStore) gin.HandlerFunc {
 
 func notFound(c *gin.Context) {
 	c.JSON(http.StatusNotFound, gin.H{"code": "PAGE_NOT_FOUND", "message": "Page not found"})
+}
+
+func slogAddTraceAttributes(c *gin.Context) {
+	sloggin.AddCustomAttributes(c,
+		slog.String("trace-id", trace.SpanFromContext(c.Request.Context()).SpanContext().TraceID().String()),
+	)
+	sloggin.AddCustomAttributes(c,
+		slog.String("span-id", trace.SpanFromContext(c.Request.Context()).SpanContext().SpanID().String()),
+	)
+	c.Next()
 }
