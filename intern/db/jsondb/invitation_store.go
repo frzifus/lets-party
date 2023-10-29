@@ -4,11 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"sync"
 
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/frzifus/lets-party/intern/model"
 )
@@ -31,12 +31,21 @@ type InvitationStore struct {
 	filename    string
 }
 
-func (i *InvitationStore) GetInvitationByID(_ context.Context, inviteID uuid.UUID) (*model.Invitation, error) {
+func (i *InvitationStore) GetInvitationByID(ctx context.Context, inviteID uuid.UUID) (*model.Invitation, error) {
+	var span trace.Span
+	ctx, span = tracer.Start(ctx, "GetInvitationByID")
+	defer span.End()
+
+	span.AddEvent("RLock")
 	i.mu.RLock()
+	defer span.AddEvent("RUnlock")
 	defer i.mu.RUnlock()
+
 	guestIDs, ok := i.invitations[inviteID]
 	if !ok {
-		return nil, fmt.Errorf("could not find invite with id: %s", inviteID)
+		err := fmt.Errorf("could not find invite with id: %s", inviteID)
+		span.RecordError(err)
+		return nil, err
 	}
 	return &model.Invitation{
 		ID:       inviteID,
@@ -45,14 +54,22 @@ func (i *InvitationStore) GetInvitationByID(_ context.Context, inviteID uuid.UUI
 }
 
 func (i *InvitationStore) CreateInvitation(ctx context.Context, guestIDs ...uuid.UUID) (*model.Invitation, error) {
+	var span trace.Span
+	ctx, span = tracer.Start(ctx, "CreateInvitation")
+	defer span.End()
+
+	span.AddEvent("Lock")
 	i.mu.Lock()
+	defer span.AddEvent("Unlock")
 	defer i.mu.Unlock()
 	id := uuid.New()
 	if _, ok := i.invitations[id]; ok {
-		return nil, fmt.Errorf("cannot create invitation, uuid already exists")
+		err := fmt.Errorf("cannot create invitation, uuid already exists")
+		span.RecordError(err)
+		return nil, err
 	}
 	i.invitations[id] = guestIDs
-	if err := i.saveToFile(); err != nil {
+	if err := i.saveToFile(ctx); err != nil {
 		return nil, err
 	}
 	return &model.Invitation{
@@ -62,21 +79,37 @@ func (i *InvitationStore) CreateInvitation(ctx context.Context, guestIDs ...uuid
 }
 
 func (i *InvitationStore) UpdateInvitation(ctx context.Context, invite *model.Invitation) error {
+	var span trace.Span
+	ctx, span = tracer.Start(ctx, "UpdateInvitation")
+	defer span.End()
+
+	span.AddEvent("Lock")
 	i.mu.Lock()
+	defer span.AddEvent("Unlock")
 	defer i.mu.Unlock()
+
 	if _, ok := i.invitations[invite.ID]; !ok {
-		return fmt.Errorf("could not find invite")
+		err := fmt.Errorf("could not find invite")
+		span.RecordError(err)
+		return err
 	}
 	i.invitations[invite.ID] = invite.GuestIDs
-	if err := i.saveToFile(); err != nil {
+	if err := i.saveToFile(ctx); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (i *InvitationStore) ListInvitations(ctx context.Context) ([]*model.Invitation, error) {
+	var span trace.Span
+	ctx, span = tracer.Start(ctx, "ListInvitations")
+	defer span.End()
+
+	span.AddEvent("RLock")
 	i.mu.RLock()
+	defer span.AddEvent("RUnlock")
 	defer i.mu.RUnlock()
+
 	var res []*model.Invitation
 	for inviteID, guestIDs := range i.invitations {
 		res = append(res, &model.Invitation{
@@ -88,13 +121,23 @@ func (i *InvitationStore) ListInvitations(ctx context.Context) ([]*model.Invitat
 }
 
 // saveToFile saves the current invitation store to the JSON file.
-func (i *InvitationStore) saveToFile() error {
+func (i *InvitationStore) saveToFile(ctx context.Context) error {
+	var span trace.Span
+	ctx, span = tracer.Start(ctx, "SaveToFile")
+	defer span.End()
+
 	fileData, err := json.MarshalIndent(i.invitations, "", "  ")
 	if err != nil {
+		span.RecordError(err)
 		return err
 	}
 
-	return os.WriteFile(i.filename, fileData, 0644)
+	err = os.WriteFile(i.filename, fileData, 0644)
+	if err != nil {
+		span.RecordError(err)
+		return err
+	}
+	return nil
 }
 
 // loadFromFile loads invitation data from the JSON file into the store.
@@ -104,7 +147,7 @@ func (i *InvitationStore) loadFromFile() error {
 		return nil
 	}
 
-	fileData, err := ioutil.ReadFile(i.filename)
+	fileData, err := os.ReadFile(i.filename)
 	if err != nil {
 		return err
 	}
