@@ -2,6 +2,7 @@ package templates
 
 import (
 	"bytes"
+	"context"
 	"embed"
 	"html/template"
 	"log/slog"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/frzifus/lets-party/intern/db"
 	"github.com/frzifus/lets-party/intern/model"
@@ -170,34 +172,44 @@ func (p *GuestHandler) parseGuestForm(raw url.Values) map[string]url.Values {
 
 func (p *GuestHandler) Create(c *gin.Context) {
 	if c.Request.Header.Get("Hx-Request") == "true" {
+		var span trace.Span
+		ctx := c.Request.Context()
+		ctx, span = tracer.Start(ctx, "GuestHandler.Create")
+		defer span.End()
+
 		inviteID, err := uuid.Parse(c.Param("uuid"))
 		if err != nil {
-			p.logger.ErrorContext(c.Request.Context(), "invalid inviteID", "error", err)
+			span.RecordError(err)
+			p.logger.ErrorContext(ctx, "invalid inviteID", "error", err)
 			c.String(http.StatusBadRequest, "invalid inviteID")
 			return
 		}
 
-		invite, err := p.iStore.GetInvitationByID(c.Request.Context(), inviteID)
+		invite, err := p.iStore.GetInvitationByID(ctx, inviteID)
 		if err != nil {
-			p.logger.WarnContext(c.Request.Context(), "invite not found", "error", err)
+			span.RecordError(err)
+			p.logger.WarnContext(ctx, "invite not found", "error", err)
 			c.String(http.StatusNotFound, "invite not found")
 			return
 		}
 
-		gID, err := p.gStore.CreateGuest(c, &model.Guest{})
+		gID, err := p.gStore.CreateGuest(ctx, &model.Guest{})
 		if err != nil {
-			p.logger.ErrorContext(c.Request.Context(), "could not create guest", "error", err)
+			span.RecordError(err)
+			p.logger.ErrorContext(ctx, "could not create guest", "error", err)
 			c.String(http.StatusBadRequest, "could not create guest")
 			return
 		}
 		invite.GuestIDs = append(invite.GuestIDs, gID)
-		if err := p.iStore.UpdateInvitation(c.Request.Context(), invite); err != nil {
-			p.logger.WarnContext(c.Request.Context(), "unable to update invite", "error", err)
+		if err := p.iStore.UpdateInvitation(ctx, invite); err != nil {
+			span.RecordError(err)
+			p.logger.WarnContext(ctx, "unable to update invite", "error", err)
 			c.String(http.StatusInternalServerError, "unable to update invite")
 			return
 		}
 
-		p.renderGuestInputBlock(c, invite.ID, gID)
+		span.AddEvent("render guest input block")
+		p.renderGuestInputBlock(ctx, c.Writer, c.DefaultQuery("lang", "en"), invite.ID, gID)
 		return
 	}
 
@@ -262,10 +274,16 @@ func (p *GuestHandler) Update(c *gin.Context) {
 	// c.String(http.StatusOK, "user update successful")
 }
 
-func (p *GuestHandler) renderGuestInputBlock(c *gin.Context, iID uuid.UUID, gID uuid.UUID) {
-	translation, err := p.tStore.ByLanguage(c, c.DefaultQuery("lang", "en"))
+func (p *GuestHandler) renderGuestInputBlock(ctx context.Context, w gin.ResponseWriter, lang string, iID, gID uuid.UUID) {
+	var span trace.Span
+	ctx, span = tracer.Start(ctx, "GuestHandler.renderGuestInputBlock")
+	defer span.End()
+
+	translation, err := p.tStore.ByLanguage(ctx, lang)
 	if err != nil {
-		p.logger.WarnContext(c.Request.Context(), "could not determine target language ", "error", err)
+		msg := "could not determine target language"
+		span.AddEvent(msg)
+		p.logger.WarnContext(ctx, msg, "error", err)
 	}
 
 	// TODO: Some options
@@ -275,11 +293,23 @@ func (p *GuestHandler) renderGuestInputBlock(c *gin.Context, iID uuid.UUID, gID 
 	//	- missing $.translation data
 	//	- https://stackoverflow.com/questions/18276173/calling-a-template-with-several-pipeline-parameters
 	wrapperTemplate, _ := template.New("wrapper").Parse("{{ template \"GUEST_INPUT\" .}}")
-	template.Must(wrapperTemplate.ParseFS(templates, "guest-input.html")).Execute(c.Writer, gin.H{
+	t, err := wrapperTemplate.ParseFS(templates, "guest-input.html")
+	if err != nil {
+		span.RecordError(err)
+		p.logger.ErrorContext(ctx, "unable to parse guest input template", "error", err)
+		return
+	}
+
+	err = t.Execute(w, gin.H{
 		"invitationID": iID,
 		"ID":           gID,
 		"translation":  translation,
 	})
+	if err != nil {
+		span.RecordError(err)
+		p.logger.ErrorContext(ctx, "unable to render guest input template", "error", err)
+		return
+	}
 }
 
 func evalTemplate(msg string, data any) (string, error) {
