@@ -10,7 +10,6 @@ import (
 
 	"net/http"
 
-	"github.com/google/uuid"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -18,7 +17,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/frzifus/lets-party/intern/db/jsondb"
-	"github.com/frzifus/lets-party/intern/model"
 	"github.com/frzifus/lets-party/intern/server"
 )
 
@@ -31,15 +29,16 @@ func main() {
 	)
 	flag.Parse()
 	fmt.Println("logLevel", *logLevelArg)
-	logLevel := new(slog.Level)
-	if err := logLevel.UnmarshalText([]byte(*logLevelArg)); err != nil {
-		panic(err)
-	}
-
+	var logLevel slog.Level
+	err := logLevel.UnmarshalText([]byte(*logLevelArg))
 	jsonHandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel})
 	logger := slog.New(jsonHandler)
-	slog.SetDefault(logger)
+	if err != nil {
+		logger.Error("unable to parse log level", "level-input", *logLevelArg, "error", err)
+		os.Exit(1)
+	}
 
+	slog.SetDefault(logger)
 	logger.Info("start and listen", "address", addr)
 	logger.Info("otlp/gRPC", "address", otlpAddr, "service", serviceName)
 
@@ -66,22 +65,14 @@ func main() {
 	}
 
 	guestsStore, _ := jsondb.NewGuestStore("testdata/guests.json")
-
-	_, _ = guestsStore.CreateGuest(context.Background(), &model.Guest{
-		ID:              uuid.MustParse("39a502ac-ba10-430d-99ac-e0955eccb73b"),
-		Firstname:       "Moritz",
-		Lastname:        "Fleck",
-		Child:           true,
-		DietaryCategory: model.DietaryCatagoryOmnivore,
-	})
+	translationStore, _ := jsondb.NewTranslationStore("testdata/translations.json")
+	invitationStore, _ := jsondb.NewInvitationStore("testdata/invitations.json")
 
 	guests, _ := guestsStore.ListGuests(context.Background())
 	for i, g := range guests {
 		logger.Debug("guests", "number", i, "firstname", g.Firstname, "lastname", g.Lastname)
 	}
 
-	translationStore, _ := jsondb.NewTranslationStore("testdata/translations.json")
-	invitationStore, _ := jsondb.NewInvitationStore("testdata/invitations.json")
 	invitations, _ := invitationStore.ListInvitations(context.Background())
 	for i, invite := range invitations {
 		logger.Debug("invitations", "number", i, "inviteID", invite.ID, "guestIDs", invite.GuestIDs)

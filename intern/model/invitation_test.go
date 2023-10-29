@@ -7,9 +7,9 @@ import (
 )
 
 func TestInvitation_RemoveGuest(t *testing.T) {
-	tt := []struct{
-		name string
-		invite  Invitation
+	tt := []struct {
+		name     string
+		invite   Invitation
 		toRemove uuid.UUID
 	}{
 		{

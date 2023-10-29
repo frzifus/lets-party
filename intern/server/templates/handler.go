@@ -41,7 +41,7 @@ func NewGuestHandler(iStore db.InvitationStore, tStore db.TranslationStore, gSto
 		iStore:   iStore,
 		gStore:   gStore,
 		tStore:   tStore,
-		logger:		slog.Default().WithGroup("http"),
+		logger:   slog.Default().WithGroup("http"),
 	}
 }
 
@@ -51,7 +51,7 @@ type GuestHandler struct {
 	iStore   db.InvitationStore
 	gStore   db.GuestStore
 	tStore   db.TranslationStore
-	logger	 *slog.Logger
+	logger   *slog.Logger
 }
 
 func (p *GuestHandler) RenderForm(c *gin.Context) {
@@ -83,7 +83,9 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 
 	translation, err := p.tStore.ByLanguage(c, lang)
 	if err != nil {
-		panic(err)
+		p.logger.ErrorContext(c.Request.Context(), "unknown target language", "error", err)
+		c.String(http.StatusBadRequest, "unknown target language")
+		return
 	}
 
 	var guests []*model.Guest
@@ -103,8 +105,8 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 			StreetNumber: "42",
 			City:         "Somewhere",
 			Country:      "Germany",
-			Longitude:   106.6333,
-			Latitude:    10.8167,
+			Longitude:    106.6333,
+			Latitude:     10.8167,
 		},
 		Date: time.Date(2023, 12, 24, 0, 0, 0, 0, time.Local),
 	}
@@ -126,7 +128,9 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 
 func (p *GuestHandler) Submit(c *gin.Context) {
 	if err := c.Request.ParseForm(); err != nil {
-		// ...
+		p.logger.ErrorContext(c.Request.Context(), "could not parse form", "error", err)
+		c.String(http.StatusBadRequest, "could not parse form")
+		return
 	}
 
 	for id, attrs := range p.parseGuestForm(c.Request.PostForm) {
@@ -140,7 +144,7 @@ func (p *GuestHandler) Submit(c *gin.Context) {
 		}
 		guest.Parse(attrs)
 		if err := p.gStore.UpdateGuest(c.Request.Context(), guest); err != nil {
-			panic(err)
+			p.logger.ErrorContext(c.Request.Context(), "could update guest", "error", err)
 		}
 	}
 
@@ -166,16 +170,32 @@ func (p *GuestHandler) parseGuestForm(raw url.Values) map[string]url.Values {
 
 func (p *GuestHandler) Create(c *gin.Context) {
 	if c.Request.Header.Get("Hx-Request") == "true" {
+		inviteID, err := uuid.Parse(c.Param("uuid"))
+		if err != nil {
+			p.logger.ErrorContext(c.Request.Context(), "invalid inviteID", "error", err)
+			c.String(http.StatusBadRequest, "invalid inviteID")
+			return
+		}
+
+		invite, err := p.iStore.GetInvitationByID(c.Request.Context(), inviteID)
+		if err != nil {
+			p.logger.WarnContext(c.Request.Context(), "invite not found", "error", err)
+			c.String(http.StatusNotFound, "invite not found")
+			return
+		}
+
 		gID, err := p.gStore.CreateGuest(c, &model.Guest{})
 		if err != nil {
-			panic("Could not create guest")
-		}
-		invite, err := p.iStore.GetInvitationByID(c.Request.Context(), uuid.MustParse(c.Param("uuid")))
-		if err != nil {
-			panic("invite not found")
+			p.logger.ErrorContext(c.Request.Context(), "could not create guest", "error", err)
+			c.String(http.StatusBadRequest, "could not create guest")
+			return
 		}
 		invite.GuestIDs = append(invite.GuestIDs, gID)
-		p.iStore.UpdateInvitation(c.Request.Context(), invite)
+		if err := p.iStore.UpdateInvitation(c.Request.Context(), invite); err != nil {
+			p.logger.WarnContext(c.Request.Context(), "unable to update invite", "error", err)
+			c.String(http.StatusInternalServerError, "unable to update invite")
+			return
+		}
 
 		p.renderGuestInputBlock(c, invite.ID, gID)
 		return
@@ -188,30 +208,44 @@ func (p *GuestHandler) Create(c *gin.Context) {
 func (p *GuestHandler) Delete(c *gin.Context) {
 	inviteID, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
+		p.logger.ErrorContext(c.Request.Context(), "invalid invite ID", "error", err)
 		c.String(http.StatusBadRequest, "invalid invite ID")
 		return
 	}
 	guestID, err := uuid.Parse(c.Param("guestid"))
 	if err != nil {
+		p.logger.ErrorContext(c.Request.Context(), "invalid guest ID", "error", err)
 		c.String(http.StatusBadRequest, "invalid guest ID")
 		return
 	}
 
 	guest, err := p.gStore.GetGuestByID(c.Request.Context(), guestID)
 	if err != nil {
+		p.logger.ErrorContext(c.Request.Context(), "user not found", "error", err)
 		c.String(http.StatusNotFound, "user not found")
 		return
 	}
 
 	invite, err := p.iStore.GetInvitationByID(c.Request.Context(), inviteID)
 	if err != nil {
+		p.logger.ErrorContext(c.Request.Context(), "user does not belong to an invitation", "error", err)
 		c.String(http.StatusNotFound, "user does not belong to an invitation")
 		return
 	}
 	// TODO: tx
 	invite.RemoveGuest(guest.ID)
-	p.gStore.DeleteGuest(c.Request.Context(), guest.ID)
-	p.iStore.UpdateInvitation(c.Request.Context(), invite)
+	if err := p.iStore.UpdateInvitation(c.Request.Context(), invite); err != nil {
+		p.logger.ErrorContext(c.Request.Context(), "unable to update invitation", "error", err)
+		c.String(http.StatusInternalServerError, "unable to update invitation")
+		return
+	}
+
+	if err := p.gStore.DeleteGuest(c.Request.Context(), guest.ID); err != nil {
+		p.logger.ErrorContext(c.Request.Context(), "unable to delete guest", "error", err)
+		c.String(http.StatusNotFound, "unable to delete guest")
+		return
+	}
+
 	c.Status(http.StatusAccepted)
 }
 
@@ -231,7 +265,7 @@ func (p *GuestHandler) Update(c *gin.Context) {
 func (p *GuestHandler) renderGuestInputBlock(c *gin.Context, iID uuid.UUID, gID uuid.UUID) {
 	translation, err := p.tStore.ByLanguage(c, c.DefaultQuery("lang", "en"))
 	if err != nil {
-		panic(err)
+		p.logger.WarnContext(c.Request.Context(), "could not determine target language ", "error", err)
 	}
 
 	// TODO: Some options
@@ -243,8 +277,8 @@ func (p *GuestHandler) renderGuestInputBlock(c *gin.Context, iID uuid.UUID, gID 
 	wrapperTemplate, _ := template.New("wrapper").Parse("{{ template \"GUEST_INPUT\" .}}")
 	template.Must(wrapperTemplate.ParseFS(templates, "guest-input.html")).Execute(c.Writer, gin.H{
 		"invitationID": iID,
-		"ID":          	gID,
-		"translation": 	translation,
+		"ID":           gID,
+		"translation":  translation,
 	})
 }
 
