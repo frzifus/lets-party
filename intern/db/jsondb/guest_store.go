@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"os"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/frzifus/lets-party/intern/model"
 )
@@ -37,23 +37,34 @@ func NewGuestStore(filename string) (*GuestStore, error) {
 
 // CreateGuest adds a new guest to the store and stores it in the JSON file.
 func (g *GuestStore) CreateGuest(ctx context.Context, guest *model.Guest) (uuid.UUID, error) {
+	var span trace.Span
+	ctx, span = tracer.Start(ctx, "CreateGuest")
+	defer span.End()
+
+	span.AddEvent("Lock")
 	g.mu.Lock()
+	defer span.AddEvent("Unlock")
 	defer g.mu.Unlock()
 
 	if guest.ID == uuid.Nil {
 		guest.ID = uuid.New()
 	}
 
+	span.AddEvent("check if guest exists")
 	// Add the guest to the store
 	if _, ok := g.guests[guest.ID]; ok {
-		return uuid.Nil, errors.New("guest already exists")
+		err := errors.New("guest already exists")
+		span.RecordError(err)
+		return uuid.Nil, err
 	}
+	span.AddEvent("create new guest")
 	now := time.Now()
 	guest.CreatedAt = &now
 	g.guests[guest.ID] = guest
 
+	span.AddEvent("save to file")
 	// Save the updated store to the JSON file
-	if err := g.saveToFile(); err != nil {
+	if err := g.saveToFile(ctx); err != nil {
 		return uuid.Nil, err
 	}
 
@@ -62,16 +73,26 @@ func (g *GuestStore) CreateGuest(ctx context.Context, guest *model.Guest) (uuid.
 
 // UpdateGuest updates an existing guest's information in the store and JSON file.
 func (g *GuestStore) UpdateGuest(ctx context.Context, guest *model.Guest) error {
+	var span trace.Span
+	ctx, span = tracer.Start(ctx, "UpdateGuest")
+	defer span.End()
+
 	if guest.ID == uuid.Nil {
-		return errors.New("guest ID is required for updating")
+		err := errors.New("guest ID is required for updating")
+		span.RecordError(err)
+		return err
 	}
 
+	span.AddEvent("Lock")
 	g.mu.Lock()
+	defer span.AddEvent("Unlock")
 	defer g.mu.Unlock()
 
 	// Check if the guest exists in the store
 	if _, ok := g.guests[guest.ID]; !ok {
-		return errors.New("guest not found")
+		err := errors.New("guest not found")
+		span.RecordError(err)
+		return err
 	}
 
 	now := time.Now()
@@ -80,7 +101,7 @@ func (g *GuestStore) UpdateGuest(ctx context.Context, guest *model.Guest) error 
 	g.guests[guest.ID] = guest
 
 	// Save the updated store to the JSON file
-	if err := g.saveToFile(); err != nil {
+	if err := g.saveToFile(ctx); err != nil {
 		return err
 	}
 
@@ -89,7 +110,13 @@ func (g *GuestStore) UpdateGuest(ctx context.Context, guest *model.Guest) error 
 
 // ListGuests returns a list of all guests in the store.
 func (g *GuestStore) ListGuests(ctx context.Context) ([]*model.Guest, error) {
+	var span trace.Span
+	ctx, span = tracer.Start(ctx, "ListGuests")
+	defer span.End()
+
+	span.AddEvent("Lock")
 	g.mu.RLock()
+	defer span.AddEvent("Unlock")
 	defer g.mu.RUnlock()
 
 	guestList := make([]*model.Guest, 0, len(g.guests))
@@ -102,25 +129,43 @@ func (g *GuestStore) ListGuests(ctx context.Context) ([]*model.Guest, error) {
 
 // GetGuestByID retrieves a guest by ID from the store.
 func (g *GuestStore) GetGuestByID(ctx context.Context, id uuid.UUID) (*model.Guest, error) {
+	var span trace.Span
+	ctx, span = tracer.Start(ctx, "GetGuestByID")
+	defer span.End()
+
+	span.AddEvent("RLock")
 	g.mu.RLock()
+	defer span.AddEvent("RUnlock")
 	defer g.mu.RUnlock()
 
 	guest, ok := g.guests[id]
 	if !ok {
-		return nil, errors.New("guest not found")
+		err := errors.New("guest not found")
+		span.RecordError(err)
+		return nil, err
 	}
 
 	return guest, nil
 }
 
 // saveToFile saves the current guest store to the JSON file.
-func (g *GuestStore) saveToFile() error {
+func (g *GuestStore) saveToFile(ctx context.Context) error {
+	var span trace.Span
+	ctx, span = tracer.Start(ctx, "SaveToFile")
+	defer span.End()
+
 	fileData, err := json.MarshalIndent(g.guests, "", "  ")
 	if err != nil {
+		span.RecordError(err)
 		return err
 	}
 
-	return ioutil.WriteFile(g.filename, fileData, 0644)
+	err = os.WriteFile(g.filename, fileData, 0644)
+	if err != nil  {
+		span.RecordError(err)
+		return err
+	}
+	return nil
 }
 
 // loadFromFile loads guest data from the JSON file into the store.
@@ -130,7 +175,7 @@ func (g *GuestStore) loadFromFile() error {
 		return nil
 	}
 
-	fileData, err := ioutil.ReadFile(g.filename)
+	fileData, err := os.ReadFile(g.filename)
 	if err != nil {
 		return err
 	}
@@ -143,23 +188,31 @@ func (g *GuestStore) loadFromFile() error {
 
 // DeleteGuest deletes an existing guest in the store and JSON file.
 func (g *GuestStore) DeleteGuest(ctx context.Context, guestID uuid.UUID) error {
+	var span trace.Span
+	ctx, span = tracer.Start(ctx, "DeleteGuest")
+	defer span.End()
+
 	if guestID == uuid.Nil {
 		return errors.New("guest ID is required for updating")
 	}
 
+	span.AddEvent("Lock")
 	g.mu.Lock()
+	defer span.AddEvent("RUnlock")
 	defer g.mu.Unlock()
 
 	// Check if the guest exists in the store
 	if _, ok := g.guests[guestID]; !ok {
-		return errors.New("guest not found")
+		err := errors.New("guest not found")
+		span.RecordError(err)
+		return err
 	}
 
 	// Delete the guest from the store
 	delete(g.guests, guestID)
 
 	// Save the updated store to the JSON file
-	if err := g.saveToFile(); err != nil {
+	if err := g.saveToFile(ctx); err != nil {
 		return err
 	}
 
