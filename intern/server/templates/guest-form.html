@@ -9,7 +9,15 @@
     <div
       class="relative flex flex-1 md:flex-none flex-col gap-4 px-6 py-4 rounded-lg border border-gray-900/10"
     >
-      <button type="button" hx-delete="{{$.id}}/guests/{{.ID}}" hx-target="closest div" hx-swap="outerHTML swap:0s" class="absolute top-[8px] right-[8px] text-gray-500 hover:text-gray-300 leading-4">&#x2715;</button>
+      <button
+        type="button"
+        hx-delete="{{$.id}}/guests/{{.ID}}"
+        hx-target="closest div"
+        hx-swap="outerHTML swap:0s"
+        class="absolute top-[8px] right-[8px] text-gray-500 hover:text-gray-300 leading-4"
+      >
+        &#x2715;
+      </button>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 box-border md:w-fit">
         <div>
           <label
@@ -63,7 +71,11 @@
       <div>
         <div class="relative flex gap-x-3">
           <div class="text-sm leading-6">
-            <label for="{{.ID}}.child" class="block text-sm font-medium leading-6 text-gray-900">{{ $.translation.GuestForm.LabelChildInput }}</label>
+            <label
+              for="{{.ID}}.child"
+              class="block text-sm font-medium leading-6 text-gray-900"
+              >{{ $.translation.GuestForm.LabelChildInput }}</label
+            >
           </div>
           <div class="flex h-6 items-center">
             <input
@@ -86,7 +98,7 @@
       hx-swap="beforeend"
       class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
     >
-      Add Guest
+      {{ .translation.GuestForm.LabelButtonAddGuest }}
     </button>
     <button
       type="submit"

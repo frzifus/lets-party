@@ -8,6 +8,7 @@
       "label_input_lastname": "Lastname",
       "label_select_diet": "Diet",
       "label_child_input": "Is a child",
+      "label_button_add_guest": "Add Guest",
       "label_button_submit": "Submit",
       "select_options_diet": ["Vegan", "Vegetarian", "No matter"]
     },
@@ -29,6 +30,7 @@
       "label_input_lastname": "Nachname",
       "label_select_diet": "Ernährung",
       "label_child_input": "Ist ein Kind",
+      "label_button_add_guest": "Gast Hinzufügen",
       "label_button_submit": "Abschicken",
       "select_options_diet": ["Vegan", "Vegetarisch", "Egal"]
     },
