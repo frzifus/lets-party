@@ -14,6 +14,7 @@ type TranslationGuestForm struct {
 	LabelInputLastname  string   `json:"label_input_lastname"`
 	LabelSelectDiet     string   `json:"label_select_diet"`
 	LabelChildInput     string   `json:"label_child_input"`
+	LabelButtonAddGuest string   `json:"label_button_add_guest"`
 	LabelButtonSubmit   string   `json:"label_button_submit"`
 	SelectOptionsDiet   []string `json:"select_options_diet"`
 }
