@@ -1,0 +1,17 @@
+{{ define "LANGUAGE_SELECT" }}
+
+<nav>
+  <ul class="list-none flex flex-wrap justify-center items-center gap-8">
+    {{ range .languageOptions }}
+    <li class="flex flex-grow justify-center items-center w-full">
+      <a href="?lang={{.Lang}}"
+        ><div
+          class="bg-[url({{.FlagImgSrc}})] bg-contain bg-no-repeat h-[12rem] w-[16rem]"
+        ></div
+      ></a>
+    </li>
+    {{ end }}
+  </ul>
+</nav>
+
+{{ end }}

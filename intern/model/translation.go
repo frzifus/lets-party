@@ -6,6 +6,7 @@ type Translation struct {
 	GuestForm      TranslationGuestForm       `json:"guest_form"`
 	Location       TranslationLocationSection `json:"location"`
 	Navigation     TranslationNavigation      `json:"navigation"`
+	FlagImgSrc     string                     `json:"flag_img_src"`
 }
 
 type TranslationGuestForm struct {
@@ -25,4 +26,9 @@ type TranslationLocationSection struct {
 type TranslationNavigation struct {
 	Guests string `json:"guests"`
 	Map    string `json:"map"`
+}
+
+type LanguageOption struct {
+	Lang       string
+	FlagImgSrc string
 }

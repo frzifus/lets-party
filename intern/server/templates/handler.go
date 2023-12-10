@@ -35,7 +35,7 @@ func NewGuestHandler(iStore db.InvitationStore, tStore db.TranslationStore, gSto
 		"guest-form.html",
 		"map.html",
 	}
-	languageTemplates := []string{"language.header.html", "language.content.html"}
+	languageTemplates := []string{"language.header.html", "language.content.html", "language-select.html"}
 
 	return &GuestHandler{
 		tmplForm: template.Must(template.ParseFS(templates, append(coreTemplates, invitationTemplates...)...)),
@@ -73,11 +73,24 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 	lang := c.Query("lang")
 	if lang == "" {
 		langs, err := p.tStore.ListLanguages(c)
+		languageOptions := make([]model.LanguageOption, len(langs))
+		i := 0
+		for _, lang := range langs {
+			translation, err := p.tStore.ByLanguage(c, lang)
+			if err != nil {
+				panic(err)
+			}
+			languageOptions[i] = model.LanguageOption{
+				Lang: lang,
+				FlagImgSrc: translation.FlagImgSrc,
+			}
+			i++
+		}
 		if err != nil {
 			c.Error(err)
 			return
 		}
-		if err := p.tmplLang.Execute(c.Writer, gin.H{"id": id, "languages": langs}); err != nil {
+		if err := p.tmplLang.Execute(c.Writer, gin.H{"id": id, "languageOptions": languageOptions}); err != nil {
 			c.Error(err)
 		}
 		return
