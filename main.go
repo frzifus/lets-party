@@ -64,9 +64,23 @@ func main() {
 		otel.SetTracerProvider(tp)
 	}
 
-	guestsStore, _ := jsondb.NewGuestStore("testdata/guests.json")
-	translationStore, _ := jsondb.NewTranslationStore("testdata/translations.json")
-	invitationStore, _ := jsondb.NewInvitationStore("testdata/invitations.json")
+	guestsStore, err := jsondb.NewGuestStore("testdata/guests.json")
+	if err != nil {
+		logger.Error("could not initialize guest store", "error", err)
+		os.Exit(1)
+	}
+
+	translationStore, err := jsondb.NewTranslationStore("testdata/translations.json")
+	if err != nil {
+		logger.Error("could not initialize translation store", "error", err)
+		os.Exit(1)
+	}
+	invitationStore, err := jsondb.NewInvitationStore("testdata/invitations.json")
+	if err != nil {
+		logger.Error("could not initialize invitation store", "error", err)
+		os.Exit(1)
+	}
+
 
 	guests, _ := guestsStore.ListGuests(context.Background())
 	for i, g := range guests {

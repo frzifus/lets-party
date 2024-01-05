@@ -1,6 +1,8 @@
 package server
 
 import (
+	"embed"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"os"
@@ -14,6 +16,9 @@ import (
 	"github.com/frzifus/lets-party/intern/db"
 	"github.com/frzifus/lets-party/intern/server/templates"
 )
+
+//go:embed all:static
+var static embed.FS
 
 func NewServer(
 	serviceName string,
@@ -43,7 +48,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if os.Getenv("GIN_MODE") == "" {
 		gin.SetMode(gin.ReleaseMode)
 	}
-	mux.Use(
+
+	middlewares := []gin.HandlerFunc{
 		sloggin.NewWithConfig(s.logger,
 			sloggin.Config{
 				DefaultLevel:     slog.LevelInfo,
@@ -51,9 +57,15 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				ServerErrorLevel: slog.LevelError,
 			},
 		),
-		gin.Recovery(), inviteExists(s.iStore),
-		otelgin.Middleware(s.serviceName), slogAddTraceAttributes,
-	)
+		gin.Recovery(), otelgin.Middleware(s.serviceName), slogAddTraceAttributes,
+	}
+
+	adminArea := mux.Group("/admin")
+	adminArea.Use(append(middlewares, gin.BasicAuth(gin.Accounts{
+		"admin": "admin", // TODO: read from config, env variable...
+	}))...)
+
+	mux.Use(append(middlewares, inviteExists(s.iStore))...)
 	mux.NoRoute(notFound)
 	guestHandler := templates.NewGuestHandler(s.iStore, s.tStore, s.gStore)
 	mux.GET("/:uuid", guestHandler.RenderForm)
@@ -62,6 +74,11 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	mux.POST("/:uuid/submit", guestHandler.Submit)
 
 	mux.GET("/:uuid/guests", func(c *gin.Context) { c.String(http.StatusOK, "thanks!") })
+
+
+	mux.StaticFS("/static", http.FS(fs.FS(static)))
+
+	adminArea.GET("/", guestHandler.RenderAdminOverview)
 
 	mux.ServeHTTP(w, r)
 }

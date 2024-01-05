@@ -56,6 +56,10 @@ type GuestHandler struct {
 	logger   *slog.Logger
 }
 
+func (p *GuestHandler) RenderAdminOverview(c *gin.Context) {
+	c.String(http.StatusOK, "admin area!")
+}
+
 func (p *GuestHandler) RenderForm(c *gin.Context) {
 	id := c.Param("uuid")
 	uid, err := uuid.Parse(id)
