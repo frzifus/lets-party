@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"context"
 	"embed"
+	"fmt"
 	"html/template"
 	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -22,7 +22,12 @@ import (
 //go:embed *.html
 var templates embed.FS
 
-func NewGuestHandler(iStore db.InvitationStore, tStore db.TranslationStore, gStore db.GuestStore) *GuestHandler {
+func NewGuestHandler(
+	iStore db.InvitationStore,
+	tStore db.TranslationStore,
+	gStore db.GuestStore,
+	eStore db.EventStore,
+) *GuestHandler {
 	coreTemplates := []string{"main.html", "footer.html"}
 	invitationTemplates := []string{
 		"invitation.header.html",
@@ -43,6 +48,7 @@ func NewGuestHandler(iStore db.InvitationStore, tStore db.TranslationStore, gSto
 		iStore:   iStore,
 		gStore:   gStore,
 		tStore:   tStore,
+		eStore:   eStore,
 		logger:   slog.Default().WithGroup("http"),
 	}
 }
@@ -53,6 +59,7 @@ type GuestHandler struct {
 	iStore   db.InvitationStore
 	gStore   db.GuestStore
 	tStore   db.TranslationStore
+	eStore   db.EventStore
 	logger   *slog.Logger
 }
 
@@ -117,17 +124,11 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 		guests = append(guests, g)
 	}
 
-	metadata := &model.Event{
-		Location: &model.Location{
-			ZipCode:      "1337",
-			Street:       "Milky Way",
-			StreetNumber: "42",
-			City:         "Somewhere",
-			Country:      "Germany",
-			Longitude:    106.6333,
-			Latitude:     10.8167,
-		},
-		Date: time.Date(2023, 12, 24, 0, 0, 0, 0, time.Local),
+	metadata, err := p.eStore.GetEvent(c.Request.Context())
+	if err != nil {
+		p.logger.ErrorContext(c.Request.Context(), "could not find event", "error", err)
+		c.String(http.StatusInternalServerError, "could not find event")
+		return
 	}
 
 	translation.Greeting, err = evalTemplate(translation.Greeting, guests)
@@ -167,7 +168,26 @@ func (p *GuestHandler) Submit(c *gin.Context) {
 		}
 	}
 
-	c.String(http.StatusOK, "thanks!")
+	event, err := p.eStore.GetEvent(c.Request.Context())
+	if err != nil {
+		p.logger.ErrorContext(c.Request.Context(), "could not find event", "error", err)
+		c.String(http.StatusInternalServerError, "could find event")
+		return
+	}
+
+	lang := c.Query("lang")
+	translation, err := p.tStore.ByLanguage(c, lang)
+	if err != nil {
+		p.logger.ErrorContext(c.Request.Context(), "unknown target language", "error", err)
+		c.String(http.StatusBadRequest, "unknown target language")
+		return
+	}
+
+	todo := fmt.Sprintf("Thanks!! %s", translation.FinalMessage)
+	todo = fmt.Sprintf("%s\nHotels: %d", todo, len(event.Hotels))
+	todo = fmt.Sprintf("%s\nAirports: %d\n", todo, len(event.Airports))
+
+	c.String(http.StatusOK, todo)
 }
 
 // key: guestID

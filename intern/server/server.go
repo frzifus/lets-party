@@ -25,6 +25,7 @@ func NewServer(
 	iStore db.InvitationStore,
 	gStore db.GuestStore,
 	tStore db.TranslationStore,
+	eStore db.EventStore,
 ) *Server {
 	return &Server{
 		logger:      slog.Default().WithGroup("http"),
@@ -32,6 +33,7 @@ func NewServer(
 		iStore:      iStore,
 		gStore:      gStore,
 		tStore:      tStore,
+		eStore:      eStore,
 	}
 }
 
@@ -41,6 +43,7 @@ type Server struct {
 	iStore      db.InvitationStore
 	gStore      db.GuestStore
 	tStore      db.TranslationStore
+	eStore      db.EventStore
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -67,13 +70,11 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	mux.Use(append(middlewares, inviteExists(s.iStore))...)
 	mux.NoRoute(notFound)
-	guestHandler := templates.NewGuestHandler(s.iStore, s.tStore, s.gStore)
+	guestHandler := templates.NewGuestHandler(s.iStore, s.tStore, s.gStore, s.eStore)
 	mux.GET("/:uuid", guestHandler.RenderForm)
 	mux.PUT("/:uuid/guests", guestHandler.Create)
 	mux.DELETE("/:uuid/guests/:guestid", guestHandler.Delete)
 	mux.POST("/:uuid/submit", guestHandler.Submit)
-
-	mux.GET("/:uuid/guests", func(c *gin.Context) { c.String(http.StatusOK, "thanks!") })
 
 	mux.StaticFS("/static", http.FS(fs.FS(static)))
 

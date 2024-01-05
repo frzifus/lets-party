@@ -3,6 +3,7 @@ package model
 type Translation struct {
 	Greeting       string                     `json:"greeting"`
 	WelcomeMessage string                     `json:"welcome_message"`
+	FinalMessage   string                     `json:"final_message"`
 	GuestForm      TranslationGuestForm       `json:"guest_form"`
 	Location       TranslationLocationSection `json:"location"`
 	Navigation     TranslationNavigation      `json:"navigation"`

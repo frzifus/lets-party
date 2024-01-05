@@ -80,6 +80,11 @@ func main() {
 		logger.Error("could not initialize invitation store", "error", err)
 		os.Exit(1)
 	}
+	eventStore, err := jsondb.NewEventStore("testdata/event.json")
+	if err != nil {
+		logger.Error("could not initialize event store", "error", err)
+		os.Exit(1)
+	}
 
 	guests, _ := guestsStore.ListGuests(context.Background())
 	for i, g := range guests {
@@ -99,6 +104,7 @@ func main() {
 			invitationStore,
 			guestsStore,
 			translationStore,
+			eventStore,
 		),
 	}
 
