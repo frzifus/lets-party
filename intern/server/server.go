@@ -1,6 +1,8 @@
 package server
 
 import (
+	"embed"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"os"
@@ -14,6 +16,9 @@ import (
 	"github.com/frzifus/lets-party/intern/db"
 	"github.com/frzifus/lets-party/intern/server/templates"
 )
+
+//go:embed all:static
+var static embed.FS
 
 func NewServer(
 	serviceName string,
@@ -69,6 +74,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	mux.POST("/:uuid/submit", guestHandler.Submit)
 
 	mux.GET("/:uuid/guests", func(c *gin.Context) { c.String(http.StatusOK, "thanks!") })
+
+
+	mux.StaticFS("/static", http.FS(fs.FS(static)))
 
 	adminArea.GET("/", guestHandler.RenderAdminOverview)
 
