@@ -81,7 +81,6 @@ func main() {
 		os.Exit(1)
 	}
 
-
 	guests, _ := guestsStore.ListGuests(context.Background())
 	for i, g := range guests {
 		logger.Debug("guests", "number", i, "firstname", g.Firstname, "lastname", g.Lastname)

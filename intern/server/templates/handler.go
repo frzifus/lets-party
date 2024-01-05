@@ -85,7 +85,7 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 				panic(err)
 			}
 			languageOptions[i] = model.LanguageOption{
-				Lang: lang,
+				Lang:       lang,
 				FlagImgSrc: translation.FlagImgSrc,
 			}
 			i++

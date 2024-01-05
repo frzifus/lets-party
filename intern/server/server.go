@@ -75,7 +75,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	mux.GET("/:uuid/guests", func(c *gin.Context) { c.String(http.StatusOK, "thanks!") })
 
-
 	mux.StaticFS("/static", http.FS(fs.FS(static)))
 
 	adminArea.GET("/", guestHandler.RenderAdminOverview)

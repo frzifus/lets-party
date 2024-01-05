@@ -161,7 +161,7 @@ func (g *GuestStore) saveToFile(ctx context.Context) error {
 	}
 
 	err = os.WriteFile(g.filename, fileData, 0644)
-	if err != nil  {
+	if err != nil {
 		span.RecordError(err)
 		return err
 	}
