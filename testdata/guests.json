@@ -2,20 +2,20 @@
   "39a502ac-ba10-430d-99ac-e0955eccb73b": {
     "id": "39a502ac-ba10-430d-99ac-e0955eccb73b",
     "created_at": "2023-09-10T16:55:04.061919457+02:00",
-    "updated_at": "2023-09-24T10:39:27.746167812+02:00",
+    "updated_at": "2024-01-05T16:50:46.536097034+01:00",
     "firstname": "Mad",
     "lastname": "Max",
-    "is_child": false,
+    "guest_age_category": 0,
     "dietary_category": 0,
     "invitation_status": 0
   },
   "42a7b4d3-25c6-431f-8930-f611c16103e6": {
     "id": "42a7b4d3-25c6-431f-8930-f611c16103e6",
     "created_at": "2023-09-10T16:55:04.061919457+02:00",
-    "updated_at": "2023-09-24T10:39:27.746697478+02:00",
+    "updated_at": "2024-01-05T16:50:46.535965515+01:00",
     "firstname": "Serious",
     "lastname": "Sam",
-    "is_child": false,
+    "guest_age_category": 2,
     "dietary_category": 0,
     "invitation_status": 0
   }

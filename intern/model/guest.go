@@ -27,13 +27,22 @@ const (
 	InvitationStatusNotAnswered
 )
 
+type GuestAgeCategory int
+
+const (
+	GuestAgeCategoryUnknown InvitationStatus = iota
+	GuestAgeCategoryBaby
+	GuestAgeCategorTeenager
+	GuestAgeCategoryAdult
+)
+
 type Guest struct {
 	ID               uuid.UUID        `json:"id" form:"-"`
 	CreatedAt        *time.Time       `json:"created_at" form:"-"`
 	UpdatedAt        *time.Time       `json:"updated_at" form:"-"`
 	Firstname        string           `json:"firstname" form:"firstname"`
 	Lastname         string           `json:"lastname" form:"lastname"`
-	Child            bool             `json:"is_child" form:"is_child"`
+	AgeCategory      GuestAgeCategory `json:"guest_age_category" form:"guest_age_category"`
 	DietaryCategory  DietaryCategory  `json:"dietary_category" form:"dietary_category"`
 	InvitationStatus InvitationStatus `json:"invitation_status" form:"invitation_status"`
 }

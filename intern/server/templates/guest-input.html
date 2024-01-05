@@ -44,15 +44,14 @@
   </div>
     <div class="relative flex gap-x-3">
       <div class="text-sm leading-6">
-        <label for="{{.ID}}.is_child" class="block text-sm font-medium leading-6 text-gray-900">{{ $.translation.GuestForm.LabelChildInput }}</label>
+        <label for="{{.ID}}.guest_age_category" class="block text-sm font-medium leading-6 text-gray-900">{{ $.translation.GuestForm.LabelAgeInput }}</label>
       </div>
       <div class="flex h-6 items-center">
         <input
-          id="{{.ID}}.is_child"
-          name="{{.ID}}.is_child"
+          id="{{.ID}}.guest_age_category"
+          name="{{.ID}}.guest_age_category"
           type="checkbox"
           class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600 justify-self-center"
-          {{if.Child}}checked{{end}}
         />
       </div>
     </div>
