@@ -1,0 +1,44 @@
+{{ define "CONTENT" }}
+
+<main class="flex flex-col flex-auto p-5 gap-4">
+    <section id="guests" class="scroll-my-[10rem]">
+        <form hx-post="{{.id}}/submit" class="flex flex-col gap-5">
+            <div
+                id="admin-form-input-container"
+                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4"
+            >
+
+                {{range $invite, $guests := .table}}
+                    <b>InviteID: {{$invite}}</b>
+                    <table class="table-auto" border="5px">
+                        <thead>
+                            <tr>
+                                <th>GuestID</th>
+                                <th>Firstname</th>
+                                <th>Lastname</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {{range $guests}}
+                        <tr>
+                            <td>
+                                {{.ID}}
+                            </td>
+                            <td>
+                                {{.Firstname}}
+                            </td>
+                            <td>
+                                {{.Lastname}}
+                            </td>
+                        </tr>
+                        {{end}}
+                        </tbody>
+                    </table>
+
+                {{end}}
+            </div>
+        </form>
+    </section>
+</main>
+
+{{ end }}

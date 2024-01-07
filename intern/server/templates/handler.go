@@ -29,6 +29,11 @@ func NewGuestHandler(
 	eStore db.EventStore,
 ) *GuestHandler {
 	coreTemplates := []string{"main.html", "footer.html"}
+	adminTemplates := []string{
+		"admin.header.html",
+		"admin.nav.html",
+		"admin.content.html",
+	}
 	invitationTemplates := []string{
 		"invitation.header.html",
 		"invitation.nav.html",
@@ -43,6 +48,7 @@ func NewGuestHandler(
 	languageTemplates := []string{"language.header.html", "language.content.html", "language-select.html"}
 
 	return &GuestHandler{
+		tmplAdmin: template.Must(template.ParseFS(templates, append(coreTemplates, adminTemplates...)...)),
 		tmplForm: template.Must(template.ParseFS(templates, append(coreTemplates, invitationTemplates...)...)),
 		tmplLang: template.Must(template.ParseFS(templates, append(coreTemplates, languageTemplates...)...)),
 		iStore:   iStore,
@@ -54,6 +60,7 @@ func NewGuestHandler(
 }
 
 type GuestHandler struct {
+	tmplAdmin *template.Template
 	tmplForm *template.Template
 	tmplLang *template.Template
 	iStore   db.InvitationStore
@@ -64,7 +71,55 @@ type GuestHandler struct {
 }
 
 func (p *GuestHandler) RenderAdminOverview(c *gin.Context) {
-	c.String(http.StatusOK, "admin area!")
+	var span trace.Span
+	ctx := c.Request.Context()
+	ctx, span = tracer.Start(ctx, "GuestHandler.RenderAdminOverview")
+	defer span.End()
+
+	metadata, err := p.eStore.GetEvent(c.Request.Context())
+	if err != nil {
+		p.logger.ErrorContext(c.Request.Context(), "could not find event", "error", err)
+		c.String(http.StatusInternalServerError, "could not find event")
+		return
+	}
+
+	lang := c.DefaultQuery("lang", "en")
+	translation, err := p.tStore.ByLanguage(c, lang)
+	if err != nil {
+		p.logger.ErrorContext(c.Request.Context(), "unknown target language", "error", err)
+		c.String(http.StatusBadRequest, "unknown target language")
+		return
+	}
+
+	invs, err := p.iStore.ListInvitations(c.Request.Context())
+	if err != nil {
+		p.logger.ErrorContext(c.Request.Context(), "could not list invitations", "error", err)
+		c.String(http.StatusBadRequest, "could not list invitations")
+		return
+	}
+
+	table := make(map[uuid.UUID][]*model.Guest, len(invs))
+
+	for _, inv := range invs {
+		for _, gID := range inv.GuestIDs {
+			fmt.Println("request guest:", gID.String())
+			guest, err := p.gStore.GetGuestByID(c.Request.Context(), gID)
+			if err != nil {
+				p.logger.WarnContext(
+					c.Request.Context(),
+					"could not read guest", "error", err, "id", gID.String(),
+				)
+				continue
+			}
+			table[inv.ID] = append(table[inv.ID], guest)
+		}
+	}
+
+	p.tmplAdmin.Execute(c.Writer, gin.H{
+		"metadata":    metadata,
+		"translation": translation,
+		"table": table,
+	})
 }
 
 func (p *GuestHandler) RenderForm(c *gin.Context) {
