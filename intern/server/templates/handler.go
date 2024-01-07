@@ -35,6 +35,7 @@ func NewGuestHandler(
 		"admin.content.html",
 	}
 	invitationTemplates := []string{
+		"invitation.banner.html",
 		"invitation.header.html",
 		"invitation.nav.html",
 		"invitation.hero.html",

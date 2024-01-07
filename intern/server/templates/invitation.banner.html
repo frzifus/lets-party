@@ -1,0 +1,27 @@
+{{ define "BANNER" }}
+
+<div
+  class="flex items-center justify-center center bg-gray-800 pb-5 pt-[4rem] relative backdrop-blur-sm"
+  style="
+    background: radial-gradient(
+      circle,
+      rgba(31, 41, 55, 1) 0%,
+      rgba(55, 31, 47, 1) 79%,
+      rgba(31, 41, 55, 1) 100%
+    );
+  "
+>
+  <div
+    class="backdrop-blur-sm bg-white/30 rounded p-5 absolute text-5xl md:text-8xl text-center w-min whitespace-no-wrap"
+  >
+    {{ .translation.Title }}
+  </div>
+  <img
+    src="static/lets-party.png"
+    alt="banner"
+    class="w-full object-scale-down"
+    style="max-height: calc(100vh - 64px - 1.25rem)"
+  />
+</div>
+
+{{ end }}

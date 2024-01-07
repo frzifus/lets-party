@@ -1,6 +1,7 @@
 package model
 
 type Translation struct {
+	Title          string                     `json:"title"`
 	Greeting       string                     `json:"greeting"`
 	WelcomeMessage string                     `json:"welcome_message"`
 	FinalMessage   string                     `json:"final_message"`

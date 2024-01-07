@@ -18,7 +18,7 @@ import (
 )
 
 //go:embed all:static
-var static embed.FS
+var staticFS embed.FS
 
 func NewServer(
 	serviceName string,
@@ -68,17 +68,22 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		"admin": "admin", // TODO: read from config, env variable...
 	}))...)
 
+	staticDir, err := fs.Sub(staticFS, "static")
+	if err != nil {
+		panic(err)
+	}
+	mux.StaticFS("/static", http.FS(fs.FS(staticDir)))
+
 	mux.Use(append(middlewares, inviteExists(s.iStore))...)
-	mux.NoRoute(notFound)
 	guestHandler := templates.NewGuestHandler(s.iStore, s.tStore, s.gStore, s.eStore)
 	mux.GET("/:uuid", guestHandler.RenderForm)
 	mux.PUT("/:uuid/guests", guestHandler.Create)
 	mux.DELETE("/:uuid/guests/:guestid", guestHandler.Delete)
 	mux.POST("/:uuid/submit", guestHandler.Submit)
 
-	mux.StaticFS("/static", http.FS(fs.FS(static)))
-
 	adminArea.GET("/", guestHandler.RenderAdminOverview)
+
+	mux.NoRoute(notFound)
 
 	mux.ServeHTTP(w, r)
 }

@@ -1,11 +1,13 @@
 {{ define "CONTENT" }}
 
-<main class="flex flex-col flex-auto p-5 gap-4">
+<main class="flex flex-col flex-auto gap-4">
   <section>{{ template "INVITATION_HERO" . }}</section>
-  <section id="guests" class="scroll-my-[10rem]">
+  <section id="guests" class="scroll-my-[4rem] p-5">
     {{ template "GUEST_FORM" . }}
   </section>
-  <section id="map" class="scroll-my-[10rem]">{{ template "MAP" . }}</section>
+  <section id="map" class="scroll-my-[4rem] p-5">
+    {{ template "MAP" . }}
+  </section>
 </main>
 
 {{ end }}
