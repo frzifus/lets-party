@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"sort"
 	"sync"
 
 	"github.com/frzifus/lets-party/intern/model"
@@ -45,6 +46,7 @@ func (t *TranslationStore) ListLanguages(ctx context.Context) ([]string, error) 
 		res[i] = lang
 		i++
 	}
+	sort.Slice(res, func(i, j int) bool{ return res[i] < res[j]})
 	return res, nil
 }
 
