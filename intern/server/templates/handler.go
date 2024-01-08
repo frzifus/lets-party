@@ -263,6 +263,27 @@ func (p *GuestHandler) parseGuestForm(raw url.Values) map[string]url.Values {
 	return input
 }
 
+func (p *GuestHandler) CreateInvitation(c *gin.Context) {
+	if c.Request.Header.Get("Hx-Request") != "true" {
+		c.String(http.StatusNotImplemented, "did not create invite")
+	}
+	var span trace.Span
+	ctx := c.Request.Context()
+	ctx, span = tracer.Start(ctx, "GuestHandler.CreateInvitation")
+	defer span.End()
+
+	invite, err := p.iStore.CreateInvitation(ctx)
+	if err != nil {
+		span.RecordError(err)
+		p.logger.WarnContext(ctx, "could not create invite", "error", err)
+		c.String(http.StatusNotFound, "could not create invite")
+		return
+	}
+
+	// TODO
+	c.String(http.StatusCreated, invite.ID.String())
+}
+
 func (p *GuestHandler) Create(c *gin.Context) {
 	if c.Request.Header.Get("Hx-Request") == "true" {
 		var span trace.Span
