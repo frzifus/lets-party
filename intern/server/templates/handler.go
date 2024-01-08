@@ -280,8 +280,23 @@ func (p *GuestHandler) CreateInvitation(c *gin.Context) {
 		return
 	}
 
-	// TODO
-	c.String(http.StatusCreated, invite.ID.String())
+	wrapperTemplate, _ := template.New("wrapper").Parse("{{ template \"ADMIN_TABLE_INVITATION_ROW\" .}}")
+	t, err := wrapperTemplate.ParseFS(templates, "admin.invitation-table-row.html")
+	if err != nil {
+		span.RecordError(err)
+		p.logger.ErrorContext(ctx, "unable to parse invitation-table-row template", "error", err)
+		return
+	}
+
+	err = t.Execute(c.Writer, gin.H{
+		"inviteId": invite.ID.String(),
+	})
+	if err != nil {
+		span.RecordError(err)
+		p.logger.ErrorContext(ctx, "unable to execute invitation-table-row template", "error", err)
+		return
+	}
+	// c.String(http.StatusCreated, invite.ID.String())
 }
 
 func (p *GuestHandler) Create(c *gin.Context) {
