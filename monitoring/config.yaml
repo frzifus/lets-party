@@ -1,0 +1,31 @@
+---
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+
+  otlp:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+
+connectors:
+  spanmetrics:
+
+processors:
+  batch:
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [spanmetrics, otlp]
+    metrics/spanmetrics:
+      receivers: [spanmetrics]
+      exporters: [prometheus]

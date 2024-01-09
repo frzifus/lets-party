@@ -1,0 +1,54 @@
+---
+version: "3.5"
+services:
+  jaeger:
+    networks:
+      - backend
+    image: jaegertracing/all-in-one:${JAEGER_IMAGE_TAG:-latest}
+    volumes:
+      - "./jaeger-ui.json:/etc/jaeger/jaeger-ui.json:z"
+    command: --query.ui-config /etc/jaeger/jaeger-ui.json
+    environment:
+      - METRICS_STORAGE_TYPE=prometheus
+      - PROMETHEUS_SERVER_URL=http://prometheus:9090
+      - PROMETHEUS_QUERY_SUPPORT_SPANMETRICS_CONNECTOR=${PROMETHEUS_QUERY_SUPPORT_SPANMETRICS_CONNECTOR:-true}
+      - PROMETHEUS_QUERY_NAMESPACE=${PROMETHEUS_QUERY_NAMESPACE:-}
+      - PROMETHEUS_QUERY_DURATION_UNIT=${PROMETHEUS_QUERY_DURATION_UNIT:-}
+      - PROMETHEUS_QUERY_NORMALIZE_CALLS=true
+      - PROMETHEUS_QUERY_NORMALIZE_DURATION=true
+    ports:
+      - "127.0.0.1:16686:16686"
+  otel_collector:
+    networks:
+      - backend
+    image: otel/opentelemetry-collector-contrib:${OTEL_IMAGE_TAG:-0.89.0}
+    volumes:
+      - ${OTEL_CONFIG_SRC:-./config.yaml}:/etc/otelcol/otel-collector-config.yaml:Z
+    command: --config /etc/otelcol/otel-collector-config.yaml
+    depends_on:
+      - jaeger
+    ports:
+      - "127.0.0.1:4317:4317"
+      - "127.0.0.1:4318:4318"
+  lets-party:
+    networks:
+      - backend
+    image: ghcr.io/frzifus/lets-party:${LETS_PARTY_TAG:-latest}
+    command: /lets-party -otlp-grpc=otel_collector:4317
+    depends_on:
+      - otel_collector
+    ports:
+      - "0.0.0.0:8080:8080"
+    volumes:
+      - "./../testdata:/testdata:z"
+  prometheus:
+    networks:
+      - backend
+    image: prom/prometheus:latest
+    volumes:
+      - "./prometheus.yaml:/etc/prometheus/prometheus.yml:Z"
+    ports:
+      - "127.0.0.1:9090:9090"
+
+networks:
+  backend:
