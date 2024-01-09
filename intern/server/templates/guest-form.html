@@ -5,10 +5,10 @@
     id="guest-form-input-container"
     class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4"
   >
-    {{ range .guests }}
+    {{ range .guests }} {{ $guest := . }}
     <div
-          class="relative flex flex-1 md:flex-none flex-col gap-4 px-6 py-4 rounded-lg border border-gray-900/10"
-      >
+      class="relative flex flex-1 md:flex-none flex-col gap-4 px-6 py-4 rounded-lg border border-gray-900/10"
+    >
       {{ if .Deleteable }}
       <button
         type="button"
@@ -64,50 +64,75 @@
             class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
           >
             <option value="" disabled selected></option>
-            {{ range $.translation.GuestForm.SelectOptionsDiet }}
-            <option value="{{.}}">{{.}}</option>
+            {{ range $index, $value := $.translation.GuestForm.SelectOptionsDiet
+            }}
+            <option
+              value="{{$index}}"
+              {{ if eq $index $guest.DietaryCategory }}
+              selected
+              {{ end }}
+            >
+              {{$value}}
+            </option>
             {{ end }}
           </select>
         </div>
 
         <div>
-            <label
-                for="{{.ID}}.age_category"
-                class="block text-sm font-medium leading-6 text-gray-900"
+          <label
+            for="{{.ID}}.age_category"
+            class="block text-sm font-medium leading-6 text-gray-900"
             >{{ $.translation.GuestForm.LabelSelectAge }}</label
-                                                          >
-            <select
-                id="{{.ID}}.age_category"
-                name="{{.ID}}.age_category"
-                autocomplete="age-name"
-                class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+          >
+          <select
+            id="{{.ID}}.age_category"
+            value="{{.AgeCategory}}"
+            name="{{.ID}}.age_category"
+            autocomplete="age-name"
+            class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+          >
+            <option value="" disabled selected></option>
+            {{ range $index, $value := $.translation.GuestForm.SelectOptionsAge
+            }}
+            <option
+              value="{{$value}}"
+              {{ if eq $index $guest.AgeCategory }}
+              selected
+              {{ end }}
             >
-                <option value="" disabled selected></option>
-                {{ range $.translation.GuestForm.SelectOptionsAge }}
-                <option value="{{.}}">{{.}}</option>
-                {{ end }}
-            </select>
+              {{$value}}
+            </option>
+            {{ end }}
+          </select>
         </div>
 
         <div>
-            <label
-                for="{{.ID}}.invitation_status"
-                class="block text-sm font-medium leading-6 text-gray-900"
+          <label
+            for="{{.ID}}.invitation_status"
+            class="block text-sm font-medium leading-6 text-gray-900"
             >{{ $.translation.GuestForm.LabelSelectInvStatus }}</label
-                                                               >
-            <select
-                id="{{.ID}}.invitation_status"
-                name="{{.ID}}.invitation_status"
-                autocomplete="invitation_status"
-                class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+          >
+          <select
+            id="{{.ID}}.invitation_status"
+            value="{{.InvitationStatus}}"
+            name="{{.ID}}.invitation_status"
+            autocomplete="invitation_status"
+            class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+          >
+            <option value="" disabled selected></option>
+            {{ range $index, $value :=
+            $.translation.GuestForm.SelectOptionsInvStatus }}
+            <option
+              value="{{$value}}"
+              {{ if eq $index $guest.InvitationStatus }}
+              selected
+              {{ end }}
             >
-                <option value="" disabled selected></option>
-                {{ range $index, $value := $.translation.GuestForm.SelectOptionsInvStatus }}
-                <option value="{{$index}}">{{$value}}</option>
-                {{ end }}
-            </select>
+              {{$value}}
+            </option>
+            {{ end }}
+          </select>
         </div>
-
       </div>
     </div>
     {{ end }}
