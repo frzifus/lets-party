@@ -46,7 +46,7 @@ func (t *TranslationStore) ListLanguages(ctx context.Context) ([]string, error) 
 		res[i] = lang
 		i++
 	}
-	sort.Slice(res, func(i, j int) bool{ return res[i] < res[j]})
+	sort.Slice(res, func(i, j int) bool { return res[i] < res[j] })
 	return res, nil
 }
 

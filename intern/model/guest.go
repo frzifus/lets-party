@@ -38,6 +38,7 @@ const (
 
 type Guest struct {
 	ID               uuid.UUID        `json:"id" form:"-"`
+	Deleteable       bool             `json:"deleteable" form:"-"`
 	CreatedAt        *time.Time       `json:"created_at" form:"-"`
 	UpdatedAt        *time.Time       `json:"updated_at" form:"-"`
 	Firstname        string           `json:"firstname" form:"firstname"`

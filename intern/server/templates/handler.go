@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"embed"
+	"errors"
 	"fmt"
 	"html/template"
 	"log/slog"
@@ -50,25 +51,25 @@ func NewGuestHandler(
 
 	return &GuestHandler{
 		tmplAdmin: template.Must(template.ParseFS(templates, append(coreTemplates, adminTemplates...)...)),
-		tmplForm: template.Must(template.ParseFS(templates, append(coreTemplates, invitationTemplates...)...)),
-		tmplLang: template.Must(template.ParseFS(templates, append(coreTemplates, languageTemplates...)...)),
-		iStore:   iStore,
-		gStore:   gStore,
-		tStore:   tStore,
-		eStore:   eStore,
-		logger:   slog.Default().WithGroup("http"),
+		tmplForm:  template.Must(template.ParseFS(templates, append(coreTemplates, invitationTemplates...)...)),
+		tmplLang:  template.Must(template.ParseFS(templates, append(coreTemplates, languageTemplates...)...)),
+		iStore:    iStore,
+		gStore:    gStore,
+		tStore:    tStore,
+		eStore:    eStore,
+		logger:    slog.Default().WithGroup("http"),
 	}
 }
 
 type GuestHandler struct {
 	tmplAdmin *template.Template
-	tmplForm *template.Template
-	tmplLang *template.Template
-	iStore   db.InvitationStore
-	gStore   db.GuestStore
-	tStore   db.TranslationStore
-	eStore   db.EventStore
-	logger   *slog.Logger
+	tmplForm  *template.Template
+	tmplLang  *template.Template
+	iStore    db.InvitationStore
+	gStore    db.GuestStore
+	tStore    db.TranslationStore
+	eStore    db.EventStore
+	logger    *slog.Logger
 }
 
 func (p *GuestHandler) RenderAdminOverview(c *gin.Context) {
@@ -77,9 +78,9 @@ func (p *GuestHandler) RenderAdminOverview(c *gin.Context) {
 	ctx, span = tracer.Start(ctx, "GuestHandler.RenderAdminOverview")
 	defer span.End()
 
-	metadata, err := p.eStore.GetEvent(c.Request.Context())
+	metadata, err := p.eStore.GetEvent(ctx)
 	if err != nil {
-		p.logger.ErrorContext(c.Request.Context(), "could not find event", "error", err)
+		p.logger.ErrorContext(ctx, "could not find event", "error", err)
 		c.String(http.StatusInternalServerError, "could not find event")
 		return
 	}
@@ -87,30 +88,44 @@ func (p *GuestHandler) RenderAdminOverview(c *gin.Context) {
 	lang := c.DefaultQuery("lang", "en")
 	translation, err := p.tStore.ByLanguage(c, lang)
 	if err != nil {
-		p.logger.ErrorContext(c.Request.Context(), "unknown target language", "error", err)
+		p.logger.ErrorContext(ctx, "unknown target language", "error", err)
 		c.String(http.StatusBadRequest, "unknown target language")
 		return
 	}
 
-	invs, err := p.iStore.ListInvitations(c.Request.Context())
+	invs, err := p.iStore.ListInvitations(ctx)
 	if err != nil {
-		p.logger.ErrorContext(c.Request.Context(), "could not list invitations", "error", err)
+		p.logger.ErrorContext(ctx, "could not list invitations", "error", err)
 		c.String(http.StatusBadRequest, "could not list invitations")
 		return
 	}
+
+	status := struct {
+		Pending  int
+		Accepted int
+		Rejected int
+	}{}
 
 	table := make(map[uuid.UUID][]*model.Guest, len(invs))
 
 	for _, inv := range invs {
 		for _, gID := range inv.GuestIDs {
 			fmt.Println("request guest:", gID.String())
-			guest, err := p.gStore.GetGuestByID(c.Request.Context(), gID)
+			guest, err := p.gStore.GetGuestByID(ctx, gID)
 			if err != nil {
 				p.logger.WarnContext(
-					c.Request.Context(),
+					ctx,
 					"could not read guest", "error", err, "id", gID.String(),
 				)
 				continue
+			}
+			switch guest.InvitationStatus {
+			case model.InvitationStatusAccepted:
+				status.Accepted += 1
+			case model.InvitationStatusRejected:
+				status.Rejected += 1
+			default:
+				status.Pending += 1
 			}
 			table[inv.ID] = append(table[inv.ID], guest)
 		}
@@ -119,11 +134,17 @@ func (p *GuestHandler) RenderAdminOverview(c *gin.Context) {
 	p.tmplAdmin.Execute(c.Writer, gin.H{
 		"metadata":    metadata,
 		"translation": translation,
-		"table": table,
+		"table":       table,
+		"status":      status,
 	})
 }
 
 func (p *GuestHandler) RenderForm(c *gin.Context) {
+	var span trace.Span
+	ctx := c.Request.Context()
+	ctx, span = tracer.Start(ctx, "GuestHandler.Submit")
+	defer span.End()
+
 	id := c.Param("uuid")
 	uid, err := uuid.Parse(id)
 	if err != nil {
@@ -165,7 +186,7 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 
 	translation, err := p.tStore.ByLanguage(c, lang)
 	if err != nil {
-		p.logger.ErrorContext(c.Request.Context(), "unknown target language", "error", err)
+		p.logger.ErrorContext(ctx, "unknown target language", "error", err)
 		c.String(http.StatusBadRequest, "unknown target language")
 		return
 	}
@@ -180,16 +201,16 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 		guests = append(guests, g)
 	}
 
-	metadata, err := p.eStore.GetEvent(c.Request.Context())
+	metadata, err := p.eStore.GetEvent(ctx)
 	if err != nil {
-		p.logger.ErrorContext(c.Request.Context(), "could not find event", "error", err)
+		p.logger.ErrorContext(ctx, "could not find event", "error", err)
 		c.String(http.StatusInternalServerError, "could not find event")
 		return
 	}
 
 	translation.Greeting, err = evalTemplate(translation.Greeting, guests)
 	if err != nil {
-		p.logger.ErrorContext(c.Request.Context(), "could not populate translation", "error", err)
+		p.logger.ErrorContext(ctx, "could not populate translation", "error", err)
 		c.String(http.StatusInternalServerError, "could not render translation")
 		return
 	}
@@ -203,8 +224,13 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 }
 
 func (p *GuestHandler) Submit(c *gin.Context) {
+	var span trace.Span
+	ctx := c.Request.Context()
+	ctx, span = tracer.Start(ctx, "GuestHandler.Submit")
+	defer span.End()
+
 	if err := c.Request.ParseForm(); err != nil {
-		p.logger.ErrorContext(c.Request.Context(), "could not parse form", "error", err)
+		p.logger.ErrorContext(ctx, "could not parse form", "error", err)
 		c.String(http.StatusBadRequest, "could not parse form")
 		return
 	}
@@ -214,19 +240,19 @@ func (p *GuestHandler) Submit(c *gin.Context) {
 		if err != nil {
 			continue
 		}
-		guest, err := p.gStore.GetGuestByID(c.Request.Context(), guestID)
+		guest, err := p.gStore.GetGuestByID(ctx, guestID)
 		if err != nil {
 			continue
 		}
 		guest.Parse(attrs)
-		if err := p.gStore.UpdateGuest(c.Request.Context(), guest); err != nil {
-			p.logger.ErrorContext(c.Request.Context(), "could update guest", "error", err)
+		if err := p.gStore.UpdateGuest(ctx, guest); err != nil {
+			p.logger.ErrorContext(ctx, "could update guest", "error", err)
 		}
 	}
 
-	event, err := p.eStore.GetEvent(c.Request.Context())
+	event, err := p.eStore.GetEvent(ctx)
 	if err != nil {
-		p.logger.ErrorContext(c.Request.Context(), "could not find event", "error", err)
+		p.logger.ErrorContext(ctx, "could not find event", "error", err)
 		c.String(http.StatusInternalServerError, "could find event")
 		return
 	}
@@ -234,7 +260,7 @@ func (p *GuestHandler) Submit(c *gin.Context) {
 	lang := c.Query("lang")
 	translation, err := p.tStore.ByLanguage(c, lang)
 	if err != nil {
-		p.logger.ErrorContext(c.Request.Context(), "unknown target language", "error", err)
+		p.logger.ErrorContext(ctx, "unknown target language", "error", err)
 		c.String(http.StatusBadRequest, "unknown target language")
 		return
 	}
@@ -272,7 +298,16 @@ func (p *GuestHandler) CreateInvitation(c *gin.Context) {
 	ctx, span = tracer.Start(ctx, "GuestHandler.CreateInvitation")
 	defer span.End()
 
-	invite, err := p.iStore.CreateInvitation(ctx)
+	// NOTE(workaround): create empty guest so that invite overview page can be rendered.
+	gID, err := p.gStore.CreateGuest(ctx, &model.Guest{})
+	if err != nil {
+		span.RecordError(err)
+		p.logger.ErrorContext(ctx, "could not create guest", "error", err)
+		c.String(http.StatusBadRequest, "could not create guest")
+		return
+	}
+
+	invite, err := p.iStore.CreateInvitation(ctx, gID)
 	if err != nil {
 		span.RecordError(err)
 		p.logger.WarnContext(ctx, "could not create invite", "error", err)
@@ -322,7 +357,15 @@ func (p *GuestHandler) Create(c *gin.Context) {
 			return
 		}
 
-		gID, err := p.gStore.CreateGuest(ctx, &model.Guest{})
+		if len(invite.GuestIDs) >= 10 {
+			err := errors.New("maximum number of guests exceeded")
+			span.RecordError(err)
+			p.logger.ErrorContext(ctx, "can not add more guests to invite", "error", err)
+			c.String(http.StatusForbidden, "can not add more guests to invite")
+			return
+		}
+
+		gID, err := p.gStore.CreateGuest(ctx, &model.Guest{Deleteable: true})
 		if err != nil {
 			span.RecordError(err)
 			p.logger.ErrorContext(ctx, "could not create guest", "error", err)
@@ -347,42 +390,53 @@ func (p *GuestHandler) Create(c *gin.Context) {
 }
 
 func (p *GuestHandler) Delete(c *gin.Context) {
+	var span trace.Span
+	ctx := c.Request.Context()
+	ctx, span = tracer.Start(ctx, "GuestHandler.Delete")
+	defer span.End()
+
 	inviteID, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
-		p.logger.ErrorContext(c.Request.Context(), "invalid invite ID", "error", err)
+		p.logger.ErrorContext(ctx, "invalid invite ID", "error", err)
 		c.String(http.StatusBadRequest, "invalid invite ID")
 		return
 	}
 	guestID, err := uuid.Parse(c.Param("guestid"))
 	if err != nil {
-		p.logger.ErrorContext(c.Request.Context(), "invalid guest ID", "error", err)
+		p.logger.ErrorContext(ctx, "invalid guest ID", "error", err)
 		c.String(http.StatusBadRequest, "invalid guest ID")
 		return
 	}
 
-	guest, err := p.gStore.GetGuestByID(c.Request.Context(), guestID)
+	guest, err := p.gStore.GetGuestByID(ctx, guestID)
 	if err != nil {
-		p.logger.ErrorContext(c.Request.Context(), "user not found", "error", err)
+		p.logger.ErrorContext(ctx, "user not found", "error", err)
 		c.String(http.StatusNotFound, "user not found")
 		return
 	}
 
-	invite, err := p.iStore.GetInvitationByID(c.Request.Context(), inviteID)
+	if !guest.Deleteable {
+		p.logger.ErrorContext(ctx, "user can not be deleted")
+		c.String(http.StatusForbidden, "user can not be deleted")
+		return
+	}
+
+	invite, err := p.iStore.GetInvitationByID(ctx, inviteID)
 	if err != nil {
-		p.logger.ErrorContext(c.Request.Context(), "user does not belong to an invitation", "error", err)
+		p.logger.ErrorContext(ctx, "user does not belong to an invitation", "error", err)
 		c.String(http.StatusNotFound, "user does not belong to an invitation")
 		return
 	}
 	// TODO: tx
 	invite.RemoveGuest(guest.ID)
-	if err := p.iStore.UpdateInvitation(c.Request.Context(), invite); err != nil {
-		p.logger.ErrorContext(c.Request.Context(), "unable to update invitation", "error", err)
+	if err := p.iStore.UpdateInvitation(ctx, invite); err != nil {
+		p.logger.ErrorContext(ctx, "unable to update invitation", "error", err)
 		c.String(http.StatusInternalServerError, "unable to update invitation")
 		return
 	}
 
-	if err := p.gStore.DeleteGuest(c.Request.Context(), guest.ID); err != nil {
-		p.logger.ErrorContext(c.Request.Context(), "unable to delete guest", "error", err)
+	if err := p.gStore.DeleteGuest(ctx, guest.ID); err != nil {
+		p.logger.ErrorContext(ctx, "unable to delete guest", "error", err)
 		c.String(http.StatusNotFound, "unable to delete guest")
 		return
 	}

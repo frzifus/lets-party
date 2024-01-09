@@ -193,7 +193,9 @@ func (g *GuestStore) DeleteGuest(ctx context.Context, guestID uuid.UUID) error {
 	defer span.End()
 
 	if guestID == uuid.Nil {
-		return errors.New("guest ID is required for updating")
+		err := errors.New("guest ID is required for updating")
+		span.RecordError(err)
+		return err
 	}
 
 	span.AddEvent("Lock")
@@ -202,8 +204,15 @@ func (g *GuestStore) DeleteGuest(ctx context.Context, guestID uuid.UUID) error {
 	defer g.mu.Unlock()
 
 	// Check if the guest exists in the store
-	if _, ok := g.guests[guestID]; !ok {
+	guest, ok := g.guests[guestID]
+	if !ok {
 		err := errors.New("guest not found")
+		span.RecordError(err)
+		return err
+	}
+
+	if !guest.Deleteable {
+		err := errors.New("guest can not be deleted")
 		span.RecordError(err)
 		return err
 	}

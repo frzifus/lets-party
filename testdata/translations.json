@@ -9,9 +9,11 @@
       "label_input_lastname": "Lastname",
       "label_select_diet": "Diet",
       "label_select_age": "Age",
+      "label_select_inv_status": "State",
       "label_button_add_guest": "Add Guest",
       "label_button_submit": "Submit",
       "select_options_diet": ["Vegan", "Vegetarian", "No matter"],
+      "select_options_inv_status": ["Not Answered", "Accepted", "Rejected"],
       "select_options_age": ["Unknown", "Baby", "Teenager", "Adult"]
     },
     "location": {
@@ -32,10 +34,12 @@
       "label_input_firstname": "Vorname",
       "label_input_lastname": "Nachname",
       "label_select_diet": "Ernährung",
-      "label_seelect_age": "Altersgruppe",
+      "label_select_age": "Altersgruppe",
+      "label_select_inv_status": "Status",
       "label_button_add_guest": "Gast Hinzufügen",
       "label_button_submit": "Abschicken",
-      "select_options_diet": ["Vegan", "Vegetarisch", "Egal"],
+      "select_options_diet": ["Vegan","Vegetarisch","Egal"],
+      "select_options_inv_status": ["Unbeantwortet", "Angenommen", "Abgelehnt"],
       "select_options_age": ["Unknown", "Baby", "Kind", "Erwachsener"]
     },
     "location": {
