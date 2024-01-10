@@ -3,6 +3,7 @@ package model
 import (
 	"net/url"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -43,7 +44,7 @@ type Guest struct {
 	UpdatedAt        *time.Time       `json:"updated_at" form:"-"`
 	Firstname        string           `json:"firstname" form:"firstname"`
 	Lastname         string           `json:"lastname" form:"lastname"`
-	AgeCategory      GuestAgeCategory `json:"guest_age_category" form:"guest_age_category"`
+	AgeCategory      GuestAgeCategory `json:"age_category" form:"age_category"`
 	DietaryCategory  DietaryCategory  `json:"dietary_category" form:"dietary_category"`
 	InvitationStatus InvitationStatus `json:"invitation_status" form:"invitation_status"`
 }
@@ -66,6 +67,12 @@ func (g *Guest) Parse(input url.Values) {
 				case reflect.Bool:
 					boolValue := strings.ToLower(fieldValue) == "true"
 					reflect.ValueOf(g).Elem().Field(i).SetBool(boolValue)
+				case reflect.Int:
+					intValue, err := strconv.Atoi(fieldValue)
+					if err != nil {
+						continue
+					}
+					reflect.ValueOf(g).Elem().Field(i).SetInt(int64(intValue))
 				}
 			}
 		}

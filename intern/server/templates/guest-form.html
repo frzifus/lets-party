@@ -58,20 +58,20 @@
             >{{ $.translation.GuestForm.LabelSelectDiet }}</label
           >
           <select
-            id="{{.ID}}.dietary_category"
-            name="{{.ID}}.dietary_category"
-            autocomplete="diet-name"
-            class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+              id="{{.ID}}.dietary_category"
+              name="{{.ID}}.dietary_category"
+              autocomplete="diet-name"
+              class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
           >
-            <option value="" disabled selected></option>
-            {{ range $index, $value := $.translation.GuestForm.SelectOptionsDiet
-            }}
-            <option
-              value="{{$index}}"
-              {{ if eq $index $guest.DietaryCategory }}
-              selected
-              {{ end }}
-            >
+              {{ range $index, $value := $.translation.GuestForm.SelectOptionsDiet
+              }}
+              {{ if eq $index 0 }}<option value="" disabled selected></option>{{ continue }}{{ end }}
+              <option
+                  value="{{$index}}"
+                  {{ if eq $index $guest.DietaryCategory }}
+                  selected
+                  {{ end }}
+              >
               {{$value}}
             </option>
             {{ end }}
@@ -85,17 +85,17 @@
             >{{ $.translation.GuestForm.LabelSelectAge }}</label
           >
           <select
-            id="{{.ID}}.age_category"
-            value="{{.AgeCategory}}"
-            name="{{.ID}}.age_category"
-            autocomplete="age-name"
-            class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+              id="{{.ID}}.age_category"
+              value="{{.AgeCategory}}"
+              name="{{.ID}}.age_category"
+              autocomplete="age-name"
+              class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
           >
-            <option value="" disabled selected></option>
-            {{ range $index, $value := $.translation.GuestForm.SelectOptionsAge
-            }}
+              {{ range $index, $value := $.translation.GuestForm.SelectOptionsAge
+              }}
+              {{ if eq $index 0 }}<option value="" disabled selected></option>{{ continue }}{{ end }}
             <option
-              value="{{$value}}"
+              value="{{$index}}"
               {{ if eq $index $guest.AgeCategory }}
               selected
               {{ end }}
@@ -119,15 +119,15 @@
             autocomplete="invitation_status"
             class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
           >
-            <option value="" disabled selected></option>
-            {{ range $index, $value :=
-            $.translation.GuestForm.SelectOptionsInvStatus }}
-            <option
-              value="{{$value}}"
-              {{ if eq $index $guest.InvitationStatus }}
-              selected
-              {{ end }}
-            >
+              {{ range $index, $value :=
+              $.translation.GuestForm.SelectOptionsInvStatus }}
+              {{ if eq $index 0 }}<option value="" disabled selected></option>{{ continue }}{{ end }}
+              <option
+                  value="{{$index}}"
+                  {{ if eq $index $guest.InvitationStatus }}
+                  selected
+                  {{ end }}
+              >
               {{$value}}
             </option>
             {{ end }}

@@ -12,9 +12,9 @@
       "label_select_inv_status": "State",
       "label_button_add_guest": "Add Guest",
       "label_button_submit": "Submit",
-      "select_options_diet": ["Vegan", "Vegetarian", "No matter"],
-      "select_options_inv_status": ["Not Answered", "Accepted", "Rejected"],
-      "select_options_age": ["Unknown", "Baby", "Teenager", "Adult"]
+      "select_options_diet": ["Unknown", "Vegan", "Vegetarian", "Omnivore"],
+      "select_options_inv_status": ["Unknown", "Accepted", "Rejected"],
+      "select_options_age": ["Unknown", "0 to 5", "6 to 17", "18+"]
     },
     "location": {
       "title": "Map",
@@ -38,9 +38,9 @@
       "label_select_inv_status": "Status",
       "label_button_add_guest": "Gast Hinzufügen",
       "label_button_submit": "Abschicken",
-      "select_options_diet": ["Vegan","Vegetarisch","Egal"],
-      "select_options_inv_status": ["Unbeantwortet", "Angenommen", "Abgelehnt"],
-      "select_options_age": ["Unknown", "Baby", "Kind", "Erwachsener"]
+      "select_options_diet": ["Unknown", "Vegan","Vegetarisch","Omnivor"],
+      "select_options_inv_status": ["Unknown", "Angenommen", "Abgelehnt"],
+      "select_options_age": ["Unknown", "0 bis 5", "6 bis 17", "18+"]
     },
     "location": {
       "title": "Karte",
