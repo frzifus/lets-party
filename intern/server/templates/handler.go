@@ -46,6 +46,8 @@ func NewGuestHandler(
 		"date.html",
 		"guest-form.html",
 		"map.html",
+		"hotels.html",
+		"airports.html",
 	}
 	languageTemplates := []string{"language.header.html", "language.content.html", "language-select.html"}
 

@@ -93,6 +93,7 @@ func createDemoEvent() *model.Event {
 		Hotels: []*model.Location{
 			{
 				Name:         "Demo Hotel 1",
+				Website:      "https://booking.com",
 				ZipCode:      "1337",
 				Street:       "Milky Way",
 				StreetNumber: "42",
