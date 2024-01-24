@@ -1,6 +1,11 @@
 {{ define "GUEST_FORM" }}
 
-<form hx-post="{{.id}}/submit" class="flex flex-col gap-5">
+<form
+  hx-post="{{.id}}/submit"
+  hx-target="#toast-container"
+  hx-swap="afterbegin transition:true"
+  class="flex flex-col gap-5"
+>
   <div
     id="guest-form-input-container"
     class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 auto-rows-fr"
