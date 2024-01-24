@@ -3,7 +3,7 @@
 <form hx-post="{{.id}}/submit" class="flex flex-col gap-5">
   <div
     id="guest-form-input-container"
-    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4"
+    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 auto-rows-fr"
   >
     {{ range .guests }} {{ $guest := . }}
     <div
@@ -58,20 +58,28 @@
             >{{ $.translation.GuestForm.LabelSelectDiet }}</label
           >
           <select
-              id="{{.ID}}.dietary_category"
-              name="{{.ID}}.dietary_category"
-              autocomplete="diet-name"
-              class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+            id="{{.ID}}.dietary_category"
+            name="{{.ID}}.dietary_category"
+            autocomplete="diet-name"
+            class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
           >
-              {{ range $index, $value := $.translation.GuestForm.SelectOptionsDiet
+            {{ range $index, $value := $.translation.GuestForm.SelectOptionsDiet
+            }} {{ if eq $index 0 }}
+            <option value="" disabled selected></option>
+            {{ continue }}{{ end }}
+            <option
+              value="{{$index}}"
+              {{
+              if
+              eq
+              $index
+              $guest.DietaryCategory
               }}
-              {{ if eq $index 0 }}<option value="" disabled selected></option>{{ continue }}{{ end }}
-              <option
-                  value="{{$index}}"
-                  {{ if eq $index $guest.DietaryCategory }}
-                  selected
-                  {{ end }}
-              >
+              selected
+              {{
+              end
+              }}
+            >
               {{$value}}
             </option>
             {{ end }}
@@ -85,20 +93,28 @@
             >{{ $.translation.GuestForm.LabelSelectAge }}</label
           >
           <select
-              id="{{.ID}}.age_category"
-              value="{{.AgeCategory}}"
-              name="{{.ID}}.age_category"
-              autocomplete="age-name"
-              class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
+            id="{{.ID}}.age_category"
+            value="{{.AgeCategory}}"
+            name="{{.ID}}.age_category"
+            autocomplete="age-name"
+            class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
           >
-              {{ range $index, $value := $.translation.GuestForm.SelectOptionsAge
-              }}
-              {{ if eq $index 0 }}<option value="" disabled selected></option>{{ continue }}{{ end }}
+            {{ range $index, $value := $.translation.GuestForm.SelectOptionsAge
+            }} {{ if eq $index 0 }}
+            <option value="" disabled selected></option>
+            {{ continue }}{{ end }}
             <option
               value="{{$index}}"
-              {{ if eq $index $guest.AgeCategory }}
+              {{
+              if
+              eq
+              $index
+              $guest.AgeCategory
+              }}
               selected
-              {{ end }}
+              {{
+              end
+              }}
             >
               {{$value}}
             </option>
@@ -119,15 +135,24 @@
             autocomplete="invitation_status"
             class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
           >
-              {{ range $index, $value :=
-              $.translation.GuestForm.SelectOptionsInvStatus }}
-              {{ if eq $index 0 }}<option value="" disabled selected></option>{{ continue }}{{ end }}
-              <option
-                  value="{{$index}}"
-                  {{ if eq $index $guest.InvitationStatus }}
-                  selected
-                  {{ end }}
-              >
+            {{ range $index, $value :=
+            $.translation.GuestForm.SelectOptionsInvStatus }} {{ if eq $index 0
+            }}
+            <option value="" disabled selected></option>
+            {{ continue }}{{ end }}
+            <option
+              value="{{$index}}"
+              {{
+              if
+              eq
+              $index
+              $guest.InvitationStatus
+              }}
+              selected
+              {{
+              end
+              }}
+            >
               {{$value}}
             </option>
             {{ end }}
@@ -136,21 +161,61 @@
       </div>
     </div>
     {{ end }}
+
+    <div
+      id="guest-form__button-add__container"
+      class="relative flex flex-1 md:flex-none flex-col items-center justify-center rounded-lg border border-gray-900/10"
+    >
+      <button
+        hx-put="{{.id}}/guests"
+        hx-target="#guest-form__button-add__container"
+        hx-swap="beforebegin hx-settle"
+        data-te-ripple-init
+        data-te-ripple-color="light"
+        class="flex items-center justify-center rounded-md h-full w-full text-md font-semibold shadow-sm hover:bg-gray-500/30 text-gray-500/40 hover:text-white ease duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="w-12 h-12"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z"
+          />
+        </svg>
+      </button>
+    </div>
   </div>
   <div class="flex justify-around md:flex-row flex-col gap-4">
     <button
-      hx-put="{{.id}}/guests"
-      hx-target="#guest-form-input-container"
-      hx-swap="beforeend"
-      class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-    >
-      {{ .translation.GuestForm.LabelButtonAddGuest }}
-    </button>
-    <button
       type="submit"
-      class="rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+      id="guest-form__button-submit"
+      data-te-ripple-init
+      data-te-ripple-color="light"
+      class="flex items-center justify-center gap-4 rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
     >
-      {{ .translation.GuestForm.LabelButtonSubmit }}
+      <label class="cursor-pointer" for="guest-form__button-submit"
+        >{{ .translation.GuestForm.LabelButtonSubmit }}</label
+      >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke-width="1.5"
+        stroke="currentColor"
+        class="w-6 h-6"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
+        />
+      </svg>
     </button>
   </div>
 </form>
