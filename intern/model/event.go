@@ -29,4 +29,5 @@ type Location struct {
 	StreetNumber string     `json:"street_number,omitempty"`
 	Longitude    float64    `json:"longitude,omitempty"`
 	Latitude     float64    `json:"latitude,omitempty"`
+	Website      string     `json:"website,omitempty"`
 }

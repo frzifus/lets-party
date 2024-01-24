@@ -20,6 +20,13 @@
       "title": "Map",
       "openExternally": "View Larger Map"
     },
+    "hotels": {
+      "title": "Hotels",
+      "website": "Check website"
+    },
+    "airports": {
+      "title": "Airports"
+    },
     "navigation": {
       "guests": "Guests",
       "map": "Map"
@@ -38,13 +45,20 @@
       "label_select_inv_status": "Status",
       "label_button_add_guest": "Gast Hinzufügen",
       "label_button_submit": "Abschicken",
-      "select_options_diet": ["Unknown", "Vegan","Vegetarisch","Omnivor"],
+      "select_options_diet": ["Unknown", "Vegan", "Vegetarisch", "Omnivor"],
       "select_options_inv_status": ["Unknown", "Angenommen", "Abgelehnt"],
       "select_options_age": ["Unknown", "0 bis 5", "6 bis 17", "18+"]
     },
     "location": {
       "title": "Karte",
       "openExternally": "Größere Ansicht"
+    },
+    "hotels": {
+      "title": "Hotels",
+      "website": "Zur Webseite gehen"
+    },
+    "airports": {
+      "title": "Flughäfen"
     },
     "navigation": {
       "guests": "Gäste",
