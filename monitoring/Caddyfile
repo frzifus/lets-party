@@ -1,0 +1,32 @@
+http://localhost {
+  request_body {
+    max_size 1MB
+  }
+
+  reverse_proxy http://lets-party:8080
+
+  route /monitoring* {
+    uri strip_prefix /monitoring
+    reverse_proxy http://jaeger:16686
+  }
+}
+
+http://invitation.klimlive.de {
+  redir https://{host}{uri} permanent
+}
+
+https://invitation.klimlive.de {
+  # Enable automatic HTTPS
+  tls ben@klimlive.de
+
+  request_body {
+    max_size 1MB
+  }
+
+  reverse_proxy http://lets-party:8080
+
+  route /monitoring* {
+    uri strip_prefix /monitoring
+    reverse_proxy http://jaeger:16686
+  }
+}

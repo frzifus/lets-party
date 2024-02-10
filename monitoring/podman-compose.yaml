@@ -1,7 +1,20 @@
 ---
 version: "3.5"
 services:
+  caddy:
+    image: caddy
+    restart: always
+    networks:
+      - backend
+    ports:
+      - "8081:80"
+      - "8443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:z
+      - ./data/caddy-data:/data:z
+      - ./data/caddy-config:/config:z
   jaeger:
+    restart: always
     networks:
       - backend
     image: jaegertracing/all-in-one:${JAEGER_IMAGE_TAG:-latest}
@@ -19,6 +32,7 @@ services:
     ports:
       - "127.0.0.1:16686:16686"
   otel_collector:
+    restart: always
     networks:
       - backend
     image: otel/opentelemetry-collector-contrib:${OTEL_IMAGE_TAG:-0.89.0}
@@ -31,6 +45,7 @@ services:
       - "127.0.0.1:4317:4317"
       - "127.0.0.1:4318:4318"
   lets-party:
+    restart: always
     networks:
       - backend
     image: ghcr.io/frzifus/lets-party:${LETS_PARTY_TAG:-latest}
@@ -38,10 +53,11 @@ services:
     depends_on:
       - otel_collector
     ports:
-      - "0.0.0.0:8080:8080"
+      - "127.0.0.1:8080:8080"
     volumes:
       - "./../testdata:/testdata:z"
   prometheus:
+    restart: always
     networks:
       - backend
     image: prom/prometheus:latest
