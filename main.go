@@ -9,14 +9,18 @@ import (
 	"time"
 
 	"net/http"
+	"net/url"
 
+	bolt "go.etcd.io/bbolt"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"github.com/frzifus/lets-party/intern/db"
 	"github.com/frzifus/lets-party/intern/db/jsondb"
+	"github.com/frzifus/lets-party/intern/db/kvdb"
 	"github.com/frzifus/lets-party/intern/server"
 )
 
@@ -24,6 +28,7 @@ func main() {
 	var (
 		serviceName = flag.String("service-name", "party-invite", "otel service name")
 		addr        = flag.String("addr", "0.0.0.0:8080", "default server address")
+		dbStr       = flag.String("db", "json://testdata", "database connection string")
 		otlpAddr    = flag.String("otlp-grpc", "", "default otlp/gRPC address, by default disabled. Example value: localhost:4317")
 		logLevelArg = flag.String("log-level", "INFO", "log level")
 	)
@@ -64,39 +69,79 @@ func main() {
 		otel.SetTracerProvider(tp)
 	}
 
-	guestsStore, err := jsondb.NewGuestStore("testdata/guests.json")
+	var (
+		guestsStore      db.GuestStore
+		invitationStore  db.InvitationStore
+		eventStore       db.EventStore
+		translationStore db.TranslationStore
+	)
+
+	u, err := url.Parse(*dbStr)
 	if err != nil {
-		logger.Error("could not initialize guest store", "error", err)
+		logger.Error("unable to parse db connection string", "error", err)
 		os.Exit(1)
 	}
 
-	translationStore, err := jsondb.NewTranslationStore("testdata/translations.json")
-	if err != nil {
-		logger.Error("could not initialize translation store", "error", err)
-		os.Exit(1)
-	}
-	invitationStore, err := jsondb.NewInvitationStore("testdata/invitations.json")
-	if err != nil {
-		logger.Error("could not initialize invitation store", "error", err)
-		os.Exit(1)
-	}
-	eventStore, err := jsondb.NewEventStore("testdata/event.json")
-	if err != nil {
-		logger.Error("could not initialize event store", "error", err)
+	switch u.Scheme {
+	case "json":
+		base := u.Host + u.Path
+		logger.Info("jsondb storage folder", "path", base)
+		guestsStore, err = jsondb.NewGuestStore(base + "/guests.json")
+		if err != nil {
+			logger.Error("could not initialize guest store", "error", err)
+			os.Exit(1)
+		}
+		translationStore, err = jsondb.NewTranslationStore(base + "/translations.json")
+		if err != nil {
+			logger.Error("could not initialize translation store", "error", err)
+			os.Exit(1)
+		}
+		invitationStore, err = jsondb.NewInvitationStore(base + "/invitations.json")
+		if err != nil {
+			logger.Error("could not initialize invitation store", "error", err)
+			os.Exit(1)
+		}
+		eventStore, err = jsondb.NewEventStore(base + "/event.json")
+		if err != nil {
+			logger.Error("could not initialize event store", "error", err)
+			os.Exit(1)
+		}
+	case "kvdb":
+		path := u.Host + u.Path
+		db, err := bolt.Open(path, 0600, nil)
+		if err != nil {
+			logger.Error("could not initialize guest store", "error", err)
+			os.Exit(1)
+		}
+		defer db.Close()
+
+		guestsStore, err = kvdb.NewGuestStore(db)
+		if err != nil {
+			logger.Error("could not initialize guest bucket", "error", err)
+			os.Exit(1)
+		}
+
+		invitationStore, err = kvdb.NewInvitationStore(db)
+		if err != nil {
+			logger.Error("could not initialize guest bucket", "error", err)
+			os.Exit(1)
+		}
+
+		eventStore, err = kvdb.NewEventStore(db)
+		if err != nil {
+			logger.Error("could not initialize event bucket", "error", err)
+			os.Exit(1)
+		}
+
+		translationStore, err = kvdb.NewTranslationStore(db)
+		if err != nil {
+			logger.Error("initialize translation bucket", "error", err)
+		}
+	default:
+		logger.Error("Unknown storage backend", "type", u.Scheme)
 		os.Exit(1)
 	}
 
-	guests, _ := guestsStore.ListGuests(context.Background())
-	for i, g := range guests {
-		logger.Debug("guests", "number", i, "firstname", g.Firstname, "lastname", g.Lastname)
-	}
-
-	invitations, _ := invitationStore.ListInvitations(context.Background())
-	for i, invite := range invitations {
-		logger.Debug("invitations", "number", i, "inviteID", invite.ID, "guestIDs", invite.GuestIDs)
-	}
-
-	logger.Info("stats", "invitations", len(invitations), "guests", len(guests))
 	srv := &http.Server{
 		Addr: *addr,
 		Handler: server.NewServer(
