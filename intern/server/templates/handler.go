@@ -29,7 +29,7 @@ func NewGuestHandler(
 	gStore db.GuestStore,
 	eStore db.EventStore,
 ) *GuestHandler {
-	coreTemplates := []string{"main.html", "footer.html"}
+	coreTemplates := []string{"main.html", "footer.html", "main.style.html"}
 	adminTemplates := []string{
 		"admin.header.html",
 		"admin.nav.html",
@@ -252,13 +252,6 @@ func (p *GuestHandler) Submit(c *gin.Context) {
 		}
 	}
 
-	event, err := p.eStore.GetEvent(ctx)
-	if err != nil {
-		p.logger.ErrorContext(ctx, "could not find event", "error", err)
-		c.String(http.StatusInternalServerError, "could find event")
-		return
-	}
-
 	lang := c.Query("lang")
 	translation, err := p.tStore.ByLanguage(c, lang)
 	if err != nil {
@@ -267,11 +260,23 @@ func (p *GuestHandler) Submit(c *gin.Context) {
 		return
 	}
 
-	todo := fmt.Sprintf("Thanks!! %s", translation.FinalMessage)
-	todo = fmt.Sprintf("%s\nHotels: %d", todo, len(event.Hotels))
-	todo = fmt.Sprintf("%s\nAirports: %d\n", todo, len(event.Airports))
+	wrapperTemplate, _ := template.New("wrapper").Parse("{{ template \"TOAST_SUCESS\" .}}")
+	t, err := wrapperTemplate.ParseFS(templates, "toast.success.html")
+	if err != nil {
+		span.RecordError(err)
+		p.logger.ErrorContext(ctx, "unable to parse toast.success template", "error", err)
+		return
+	}
 
-	c.String(http.StatusOK, todo)
+	err = t.Execute(c.Writer, gin.H{
+		"Title": translation.Success.Title,
+		"Message": translation.GuestForm.MessageSubmitSuccess,
+	})
+	if err != nil {
+		span.RecordError(err)
+		p.logger.ErrorContext(ctx, "unable to execute toast.success template", "error", err)
+		return
+	}
 }
 
 // key: guestID

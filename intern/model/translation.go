@@ -11,6 +11,8 @@ type Translation struct {
 	Airports       TranslationAirportsSection `json:"airports"`
 	Navigation     TranslationNavigation      `json:"navigation"`
 	FlagImgSrc     string                     `json:"flag_img_src"`
+	Error          Error                      `json:"error"`
+	Success        Success                    `json:"success"`
 }
 
 type TranslationGuestForm struct {
@@ -25,6 +27,7 @@ type TranslationGuestForm struct {
 	SelectOptionsAge       []string `json:"select_options_age"`
 	SelectOptionsDiet      []string `json:"select_options_diet"`
 	SelectOptionsInvStatus []string `json:"select_options_inv_status"`
+	MessageSubmitSuccess   string   `json:"message_submit_success"`
 }
 
 type TranslationLocationSection struct {
@@ -51,4 +54,13 @@ type TranslationNavigation struct {
 type LanguageOption struct {
 	Lang       string
 	FlagImgSrc string
+}
+
+type Error struct {
+	Title   string `json:"title"`
+	Process string `json:"process"`
+}
+
+type Success struct {
+	Title string `json:"title"`
 }

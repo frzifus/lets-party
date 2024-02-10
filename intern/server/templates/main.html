@@ -14,29 +14,33 @@
     <title>{{.Title}}</title>
     <script src="https://unpkg.com/htmx.org@1.9.5"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    {{ template "STYLE" }}
   </head>
   <body class="flex flex-col min-h-screen">
     {{ template "HEADER" .}} {{ template "CONTENT" .}} {{ template "FOOTER" .}}
+    <div
+      class="fixed z-[999] bottom-[25px] left-[25px]"
+      id="toast-container"
+    ></div>
     <script type="importmap">
       {
         "imports": {
-          "tw-elements": "https://cdn.jsdelivr.net/npm/tailwind-elements@latest"
+          "tw-elements": "https://cdn.jsdelivr.net/npm/tw-elements@1.1.0/dist/js/tw-elements.es.min.js"
         }
       }
     </script>
     <script>
-      document.body.addEventListener('htmx:configRequest', function (event) {
+      document.body.addEventListener("htmx:configRequest", function (event) {
         let currentUrl = new URL(window.location.href);
         event.detail.path += currentUrl.search;
       });
     </script>
     <script type="module">
-      import {
-        Ripple,
-        initTE,
-      } from 'https://cdn.jsdelivr.net/npm/tw-elements@1.1.0/dist/js/tw-elements.es.min.js';
+      import { Ripple, initTE } from "tw-elements";
 
-      initTE({ Ripple });
+      initTE({
+        Ripple,
+      });
     </script>
   </body>
 </html>
