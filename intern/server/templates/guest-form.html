@@ -4,6 +4,7 @@
   hx-post="{{.id}}/submit"
   hx-target="#toast-container"
   hx-swap="afterbegin transition:true"
+  hx-on::after-request="document.getElementById('map').scrollIntoView({ behavior: 'smooth' });"
   class="flex flex-col gap-5"
 >
   <div

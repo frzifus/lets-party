@@ -37,7 +37,9 @@
     },
     "navigation": {
       "guests": "Guests",
-      "map": "Map"
+      "map": "Map",
+      "hotels": "Hotels",
+      "airports": "Airports"
     },
     "and": "and"
   },
@@ -80,7 +82,9 @@
     },
     "navigation": {
       "guests": "Gäste",
-      "map": "Karte"
+      "map": "Karte",
+      "hotels": "Hotels",
+      "airports": "Flughäfen"
     },
     "and": "und"
   }
