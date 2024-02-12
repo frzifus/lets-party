@@ -13,6 +13,7 @@ type Translation struct {
 	FlagImgSrc     string                     `json:"flag_img_src"`
 	Error          Error                      `json:"error"`
 	Success        Success                    `json:"success"`
+	And            string                     `json:"and"`
 }
 
 type TranslationGuestForm struct {

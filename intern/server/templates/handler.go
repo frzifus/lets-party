@@ -210,7 +210,17 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 		return
 	}
 
-	translation.Greeting, err = evalTemplate(translation.Greeting, guests)
+	guestsGreetList := make([]struct{ Firstname string }, len(guests))
+	for index, guest := range guests {
+		guestsGreetList[index].Firstname = guest.Firstname
+		if index < len(guests)-2 {
+			guestsGreetList[index].Firstname = fmt.Sprintf("%s,", guest.Firstname)
+		} else if index < len(guests)-1 {
+			guestsGreetList[index].Firstname = fmt.Sprintf("%s %s", guest.Firstname, translation.And)
+		}
+	}
+
+	translation.Greeting, err = evalTemplate(translation.Greeting, guestsGreetList)
 	if err != nil {
 		p.logger.ErrorContext(ctx, "could not populate translation", "error", err)
 		c.String(http.StatusInternalServerError, "could not render translation")
@@ -269,7 +279,7 @@ func (p *GuestHandler) Submit(c *gin.Context) {
 	}
 
 	err = t.Execute(c.Writer, gin.H{
-		"Title": translation.Success.Title,
+		"Title":   translation.Success.Title,
 		"Message": translation.GuestForm.MessageSubmitSuccess,
 	})
 	if err != nil {
