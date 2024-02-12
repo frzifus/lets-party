@@ -1,7 +1,7 @@
 {{ define "CONTENT" }}
 
 <main class="flex flex-col flex-auto p-5 gap-4">
-  <section class="flex flex-col gap-4 w-full">
+  <section id="guests" class="flex flex-col gap-4 w-full">
     <button
       hx-post="/admin/invitation"
       hx-target="#invitations-table-body"
@@ -12,7 +12,8 @@
       Create Invitation
     </button>
     <p>
-        <b>Pending:</b> {{ .status.Pending }}, <b>Accepted:</b> {{ .status.Rejected }}, <b>Rejected:</b> {{ .status.Rejected }}
+      <b>Pending:</b> {{ .status.Pending }}, <b>Accepted:</b> {{
+      .status.Rejected }}, <b>Rejected:</b> {{ .status.Rejected }}
     </p>
     <div>
       <table class="table-auto w-full">
@@ -60,7 +61,12 @@
               ></a>
             </td>
             <td class="py-2">
-                {{ range $guests }} <p style="color:{{ if eq .InvitationStatus 0 }}gray{{ else if eq .InvitationStatus 1}}green{{ else if eq .InvitationStatus 2}}red{{ end }};"> {{ .Firstname }} {{ .Lastname }} </p>
+              {{ range $guests }}
+              <p
+                style="color:{{ if eq .InvitationStatus 0 }}gray{{ else if eq .InvitationStatus 1}}green{{ else if eq .InvitationStatus 2}}red{{ end }};"
+              >
+                {{ .Firstname }} {{ .Lastname }}
+              </p>
               {{end}}
             </td>
             <td class="py-2">

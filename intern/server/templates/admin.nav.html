@@ -1,39 +1,27 @@
 {{ define "ADMIN_NAV" }}
 
-<nav class="bg-gray-800 w-full">
+<nav
+  class="bg-gray-800/60 bg-gradient-to-r/60 from-[#1f2937] from-1% via-[#371f2f] via-50% to-[#1f2937] to-99% w-full backdrop-blur-sm"
+>
   <div class="mx-auto w-full px-4 sm:px-6 lg:px-8">
     <div class="flex h-16 items-center justify-between">
       <div class="flex space-between">
-        <div class="hidden md:block">
+        <div>
           <div class="flex items-baseline space-x-4">
-            <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
             <a
               href="#guests"
               class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium"
               aria-current="page"
-              >{{ .translation.Navigation.Guests }}</a
+              >Guests</a
+            >
+            <a
+              href="#map"
+              class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium"
+              >Translations</a
             >
           </div>
         </div>
       </div>
-    </div>
-  </div>
-
-  <!-- Mobile menu, show/hide based on menu state. -->
-  <div class="md:hidden" id="mobile-menu">
-    <div class="space-y-1 px-2 pb-3 pt-2 sm:px-3">
-      <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
-      <a
-        href="#guests"
-        class="text-gray-300 hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-base font-medium"
-        aria-current="page"
-        >{{ .translation.Navigation.Guests }}</a
-      >
-      <a
-          href="#map"
-          class="text-gray-300 hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-base font-medium"
-      >{{ .translation.Navigation.Map }}</a
-                                        >
     </div>
   </div>
 </nav>
