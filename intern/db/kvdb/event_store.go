@@ -51,14 +51,19 @@ func (e *EventStore) GetEvent(ctx context.Context) (*model.Event, error) {
 	})
 }
 
-func (e *EventStore) UpdateEvent(ctx context.Context, _ *model.Event) error {
+func (e *EventStore) UpdateEvent(ctx context.Context, in *model.Event) error {
 	var span trace.Span
 	ctx, span = tracer.Start(ctx, "UpdateEvent")
 	defer span.End()
 
-	err := errors.New("not implemented")
-	span.RecordError(err)
-	return err
+	return e.db.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(bucketEvent))
+		event, err := json.Marshal(in)
+		if err != nil {
+			return err
+		}
+		return bucket.Put([]byte(e.ekey), event)
+	})
 }
 
 func createDemoEvent() *model.Event {

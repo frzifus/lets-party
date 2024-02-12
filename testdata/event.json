@@ -1,0 +1,50 @@
+{
+  "id": "b0efa7fc-be99-4f5b-9fe8-1cd6cf6dd443",
+  "created_at": null,
+  "updated_at": null,
+  "location": {
+    "id": "00000000-0000-0000-0000-000000000000",
+    "created_at": null,
+    "omitempty": null,
+    "name": "Party location",
+    "country": "Germany",
+    "city": "Somewhere",
+    "zipcode": "1337",
+    "street": "Milky Way",
+    "street_number": "42",
+    "longitude": 106.6333,
+    "latitude": 10.8167
+  },
+  "date": "2023-12-24T00:00:00+01:00",
+  "hotels": [
+    {
+      "id": "00000000-0000-0000-0000-000000000000",
+      "created_at": null,
+      "omitempty": null,
+      "name": "Demo Hotel 1",
+      "country": "Germany",
+      "city": "Somewhere",
+      "zipcode": "1337",
+      "street": "Milky Way",
+      "street_number": "42",
+      "longitude": 106.6333,
+      "latitude": 10.8167,
+      "website": "https://booking.com"
+    }
+  ],
+  "airports": [
+    {
+      "id": "00000000-0000-0000-0000-000000000000",
+      "created_at": null,
+      "omitempty": null,
+      "name": "Demo Airport 1",
+      "country": "Germany",
+      "city": "Somewhere",
+      "zipcode": "1337",
+      "street": "Milky Way",
+      "street_number": "42",
+      "longitude": 106.6333,
+      "latitude": 10.8167
+    }
+  ]
+}

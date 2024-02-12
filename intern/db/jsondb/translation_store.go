@@ -85,3 +85,7 @@ func (t *TranslationStore) loadFromFile() error {
 
 	return json.Unmarshal(fileData, &t.byLanguage)
 }
+
+func (t *TranslationStore) CreateLanguage(context.Context, string, *model.Translation) error {
+	return errors.New("not implemented")
+}

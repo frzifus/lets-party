@@ -60,3 +60,14 @@ func (t *TranslationStore) ByLanguage(ctx context.Context, l string) (*model.Tra
 		return json.Unmarshal(trans, translation)
 	})
 }
+
+func (t *TranslationStore) CreateLanguage(_ context.Context, key string, translation *model.Translation) error {
+	return t.db.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(bucketTranslation))
+		val, err := json.Marshal(translation)
+		if err != nil {
+			return err
+		}
+		return bucket.Put([]byte(key), val)
+	})
+}

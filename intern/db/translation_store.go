@@ -9,4 +9,5 @@ import (
 type TranslationStore interface {
 	ListLanguages(context.Context) ([]string, error)
 	ByLanguage(context.Context, string) (*model.Translation, error)
+	CreateLanguage(context.Context, string, *model.Translation) error
 }
