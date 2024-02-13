@@ -6,7 +6,7 @@ COPY . /go/src/github.com/frzifus/lets-party
 
 WORKDIR /go/src/github.com/frzifus/lets-party
 
-RUN CGO_ENABLED=0 go build -v -o /lets-party
+RUN CGO_ENABLED=0 go build -v -o /lets-party cmd/server/main.go
 
 FROM scratch
 
