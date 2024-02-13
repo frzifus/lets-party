@@ -87,14 +87,6 @@ func (p *GuestHandler) RenderAdminOverview(c *gin.Context) {
 		return
 	}
 
-	lang := c.DefaultQuery("lang", "en")
-	translation, err := p.tStore.ByLanguage(c, lang)
-	if err != nil {
-		p.logger.ErrorContext(ctx, "unknown target language", "error", err)
-		c.String(http.StatusBadRequest, "unknown target language")
-		return
-	}
-
 	invs, err := p.iStore.ListInvitations(ctx)
 	if err != nil {
 		p.logger.ErrorContext(ctx, "could not list invitations", "error", err)
@@ -134,10 +126,9 @@ func (p *GuestHandler) RenderAdminOverview(c *gin.Context) {
 	}
 
 	p.tmplAdmin.Execute(c.Writer, gin.H{
-		"metadata":    metadata,
-		"translation": translation,
-		"table":       table,
-		"status":      status,
+		"metadata": metadata,
+		"table":    table,
+		"status":   status,
 	})
 }
 
@@ -315,6 +306,21 @@ func (p *GuestHandler) CreateInvitation(c *gin.Context) {
 	ctx, span = tracer.Start(ctx, "GuestHandler.CreateInvitation")
 	defer span.End()
 
+	invs, err := p.iStore.ListInvitations(ctx)
+	if err != nil {
+		span.RecordError(err)
+		p.logger.ErrorContext(ctx, "could not list invitations", "error", err)
+		c.String(http.StatusInternalServerError, "could not list invitations")
+		return
+	}
+	if len(invs) >= 250 { // HACK
+		err := errors.New("maximum number of invitations exceeded")
+		span.RecordError(err)
+		p.logger.ErrorContext(ctx, "can not add more invitations to this event", "error", err)
+		c.String(http.StatusForbidden, "can not add more invitations to this event")
+		return
+	}
+
 	// NOTE(workaround): create empty guest so that invite overview page can be rendered.
 	gID, err := p.gStore.CreateGuest(ctx, &model.Guest{})
 	if err != nil {
@@ -374,7 +380,7 @@ func (p *GuestHandler) Create(c *gin.Context) {
 			return
 		}
 
-		if len(invite.GuestIDs) >= 10 {
+		if len(invite.GuestIDs) >= 10 { // HACK
 			err := errors.New("maximum number of guests exceeded")
 			span.RecordError(err)
 			p.logger.ErrorContext(ctx, "can not add more guests to invite", "error", err)
