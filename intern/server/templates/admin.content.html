@@ -1,6 +1,7 @@
 {{ define "CONTENT" }}
 
 <main class="flex flex-col flex-auto p-5 gap-4">
+  {{ template "ADMIN_EVENT" .metadata }}
   <section id="guests" class="flex flex-col gap-4 w-full">
     <button
       hx-post="/admin/invitation"
@@ -63,7 +64,7 @@
             <td class="py-2">
               {{ range $guests }}
               <p
-                style="color:{{ if eq .InvitationStatus 0 }}gray{{ else if eq .InvitationStatus 1}}green{{ else if eq .InvitationStatus 2}}red{{ end }};"
+                class="{{ if eq .InvitationStatus 0 }}text-gray-400{{ else if eq .InvitationStatus 1 }}text-green-400{{ else if eq .InvitationStatus 2 }}text-red-400{{ end }}"
               >
                 {{ .Firstname }} {{ .Lastname }}
               </p>
