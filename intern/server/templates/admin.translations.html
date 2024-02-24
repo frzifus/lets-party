@@ -1,0 +1,67 @@
+{{ define "ADMIN_TRANSLATIONS" }}
+
+<section id="translations" class="flex flex-col gap-4 w-full">
+  <form hx-post="/admin/translations" hx-swap="afterbegin transition:true">
+    <div
+      class="relative flex flex-col flex-1 md:flex-none flex gap-6 px-6 py-4 rounded-lg border border-gray-900/10"
+    >
+      <div class="flex flex-col gap-4">
+        <h2>Translations</h2>
+        <h3>Updated At: {{ .UpdatedAt }}</h3>
+
+        {{ range $languageKey, $translationByLanguageKey := .translations }}
+        <div>{{$languageKey}}</div>
+        <div
+        class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 box-border md:w-fit"
+        >
+          {{ range $translationKey, $translationValue := $translationByLanguageKey }}
+          <div>
+            <label
+              for="{{$languageKey}}.{{$translationKey}}"
+              class="block text-sm font-medium leading-6 text-gray-900"
+              >{{$languageKey}}.{{$translationKey}}</label
+              required
+            >
+            <input
+              type="text"
+              name="{{$languageKey}}.{{$translationKey}}"
+              id="{{$languageKey}}.{{$translationKey}}"
+              class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+              value="{{$translationValue}}"
+            />
+          </div>
+          {{ end }}
+        </div>
+        {{ end }}
+      </div>
+
+      <div class="flex justify-around md:flex-row flex-col gap-4">
+        <button
+          type="submit"
+          id="translations.submit"
+          data-te-ripple-init
+          data-te-ripple-color="light"
+          class="flex items-center justify-center gap-4 rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+        >
+          <label class="cursor-pointer" for="translations.submit">Submit</label>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-6 h-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </form>
+</section>
+
+{{ end }}
