@@ -9,7 +9,7 @@
 >
   <div
     id="guest-form-input-container"
-    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 auto-rows-fr"
+    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 auto-rows-auto md:auto-rows-fr"
     hx-on::after-request="event?.stopPropagation()"
   >
     {{ range .guests }} {{ $guest := . }}
@@ -179,7 +179,7 @@
         hx-swap="beforebegin hx-settle"
         data-te-ripple-init
         data-te-ripple-color="light"
-        class="flex items-center justify-center rounded-md h-full w-full text-md font-semibold shadow-sm hover:bg-gray-500/30 text-gray-500/40 hover:text-white ease duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+        class="flex items-center justify-center rounded-md h-full w-full text-md font-semibold shadow-sm hover:bg-gray-500/30 text-gray-500/40 hover:text-white ease duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 py-4 md:py-0"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
