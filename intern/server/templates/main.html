@@ -23,7 +23,7 @@
   <body class="flex flex-col min-h-screen">
     {{ template "HEADER" .}} {{ template "CONTENT" .}} {{ template "FOOTER" .}}
     <div
-      class="fixed z-[999] bottom-[25px] left-[25px]"
+      class="fixed z-[999] bottom-[25px] left-[25px] max-w-[calc(100vw-50px)]"
       id="toast-container"
     ></div>
     <script type="importmap">
