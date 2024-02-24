@@ -5,15 +5,15 @@ class="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4 box-border md:w-fit"
 >
   <div>
     <label
-      for="location.{{.ID}}.name"
+      for="{{.ID}}.name"
       class="block text-sm font-medium leading-6 text-gray-900"
       >Name</label
       required
     >
     <input
       type="text"
-      name="location.{{.ID}}.name"
-      id="location.{{.ID}}.name"
+      name="{{.ID}}.name"
+      id="{{.ID}}.name"
       class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
       value="{{.Name}}"
     />
@@ -21,14 +21,14 @@ class="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4 box-border md:w-fit"
 
   <div>
     <label
-      for="location.{{.ID}}.url"
+      for="{{.ID}}.url"
       class="block text-sm font-medium leading-6 text-gray-900"
       >URL</label
     >
     <input
       type="text"
-      name="location.{{.ID}}.url"
-      id="location.{{.ID}}.url"
+      name="{{.ID}}.url"
+      id="{{.ID}}.url"
       class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
       value="{{.URL}}"
     />
@@ -36,14 +36,14 @@ class="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4 box-border md:w-fit"
 
   <div>
     <label
-      for="location.{{.ID}}.country"
+      for="{{.ID}}.country"
       class="block text-sm font-medium leading-6 text-gray-900"
       >Country</label
     >
     <input
       type="text"
-      name="location.{{.ID}}.country"
-      id="location.{{.ID}}.country"
+      name="{{.ID}}.country"
+      id="{{.ID}}.country"
       class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
       value="{{.Country}}"
     />
@@ -51,14 +51,14 @@ class="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4 box-border md:w-fit"
 
   <div>
     <label
-      for="location.{{.ID}}.city"
+      for="{{.ID}}.city"
       class="block text-sm font-medium leading-6 text-gray-900"
       >City</label
     >
     <input
       type="text"
-      name="location.{{.ID}}.city"
-      id="location.{{.ID}}.city"
+      name="{{.ID}}.city"
+      id="{{.ID}}.city"
       class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
       value="{{.City}}"
     />
@@ -66,14 +66,14 @@ class="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4 box-border md:w-fit"
 
   <div>
     <label
-      for="location.{{.ID}}.zipCode"
+      for="{{.ID}}.zipcode"
       class="block text-sm font-medium leading-6 text-gray-900"
       >Zip code</label
     >
     <input
       type="text"
-      name="location.{{.ID}}.zipCode"
-      id="location.{{.ID}}.zipCode"
+      name="{{.ID}}.zipcode"
+      id="{{.ID}}.zipcode"
       class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
       value="{{.ZipCode}}"
     />
@@ -81,14 +81,14 @@ class="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4 box-border md:w-fit"
 
   <div>
     <label
-      for="location.{{.ID}}.street"
+      for="{{.ID}}.street"
       class="block text-sm font-medium leading-6 text-gray-900"
       >Street</label
     >
     <input
       type="text"
-      name="location.{{.ID}}.street"
-      id="location.{{.ID}}.street"
+      name="{{.ID}}.street"
+      id="{{.ID}}.street"
       class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
       value="{{.Street}}"
     />
@@ -96,14 +96,14 @@ class="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4 box-border md:w-fit"
 
   <div>
     <label
-      for="location.{{.ID}}.streetNumber"
+      for="{{.ID}}.street_number"
       class="block text-sm font-medium leading-6 text-gray-900"
       >Street number</label
     >
     <input
       type="text"
-      name="location.{{.ID}}.streetNumber"
-      id="location.{{.ID}}.streetNumber"
+      name="{{.ID}}.street_number"
+      id="{{.ID}}.street_number"
       class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
       value="{{.StreetNumber}}"
     />
@@ -111,14 +111,14 @@ class="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4 box-border md:w-fit"
 
   <div>
     <label
-      for="location.{{.ID}}.longitude"
+      for="{{.ID}}.longitude"
       class="block text-sm font-medium leading-6 text-gray-900"
       >Longitude</label
     >
     <input
       type="text"
-      name="location.{{.ID}}.longitude"
-      id="location.{{.ID}}.longitude"
+      name="{{.ID}}.longitude"
+      id="{{.ID}}.longitude"
       class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
       value="{{.Longitude}}"
     />
@@ -126,14 +126,14 @@ class="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4 box-border md:w-fit"
 
   <div>
     <label
-      for="location.{{.ID}}.latitude"
+      for="{{.ID}}.latitude"
       class="block text-sm font-medium leading-6 text-gray-900"
       >Latitude</label
     >
     <input
       type="text"
-      name="location.{{.ID}}.latitude"
-      id="location.{{.ID}}.latitude"
+      name="{{.ID}}.latitude"
+      id="{{.ID}}.latitude"
       class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
       value="{{.Latitude}}"
     />
@@ -141,14 +141,14 @@ class="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4 box-border md:w-fit"
 
   <div>
     <label
-      for="location.{{.ID}}.website"
+      for="{{.ID}}.website"
       class="block text-sm font-medium leading-6 text-gray-900"
       >Website</label
     >
     <input
       type="text"
-      name="location.{{.ID}}.website"
-      id="location.{{.ID}}.website"
+      name="{{.ID}}.website"
+      id="{{.ID}}.website"
       class="block w-full rounded-md border-0 px-3 md:px-4 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
       value="{{.Website}}"
     />
