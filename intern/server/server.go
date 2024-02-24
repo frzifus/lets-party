@@ -83,6 +83,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	adminArea.GET("/", guestHandler.RenderAdminOverview)
 	adminArea.POST("/invitation", guestHandler.CreateInvitation)
+	adminArea.POST("/event", guestHandler.UpdateEvent)
 
 	mux.NoRoute(notFound)
 

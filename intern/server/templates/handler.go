@@ -236,6 +236,7 @@ func (p *GuestHandler) Submit(c *gin.Context) {
 	defer span.End()
 
 	if err := c.Request.ParseForm(); err != nil {
+		span.RecordError(err)
 		p.logger.ErrorContext(ctx, "could not parse form", "error", err)
 		c.String(http.StatusBadRequest, "could not parse form")
 		return
@@ -252,6 +253,7 @@ func (p *GuestHandler) Submit(c *gin.Context) {
 		}
 
 		if err := form.Unmarshal(attrs, guest); err != nil {
+			span.RecordError(err)
 			p.logger.ErrorContext(ctx, "could not parse guest", "error", err)
 			c.String(http.StatusBadRequest, "could not parse guest")
 			return
@@ -524,6 +526,36 @@ func (p *GuestHandler) renderGuestInputBlock(ctx context.Context, w gin.Response
 		span.RecordError(err)
 		p.logger.ErrorContext(ctx, "unable to render guest input template", "error", err)
 		return
+	}
+}
+
+func (p *GuestHandler) UpdateEvent(c *gin.Context) {
+	var span trace.Span
+	ctx := c.Request.Context()
+	ctx, span = tracer.Start(ctx, "GuestHandler.UpdateEvent")
+	defer span.End()
+	e, err := p.eStore.GetEvent(ctx)
+	if err != nil {
+		span.RecordError(err)
+		return
+	}
+
+	if err := c.Request.ParseForm(); err != nil {
+		span.RecordError(err)
+		p.logger.ErrorContext(ctx, "could not parse form", "error", err)
+		c.String(http.StatusBadRequest, "could not parse form")
+		return
+	}
+
+	if err := form.Unmarshal(c.Request.PostForm, e); err != nil {
+		span.RecordError(err)
+		p.logger.ErrorContext(ctx, "could not parse event", "error", err)
+		c.String(http.StatusBadRequest, "could not parse event")
+		return
+	}
+
+	if err := p.eStore.UpdateEvent(ctx, e); err != nil {
+		span.RecordError(err)
 	}
 }
 
