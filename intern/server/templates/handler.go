@@ -39,6 +39,8 @@ func NewGuestHandler(
 		"admin.content.html",
 		"admin.event.html",
 		"admin.event.location.html",
+		"admin.event.location.airport.html",
+		"admin.event.location.hotel.html",
 		"admin.translations.html",
 	}
 	invitationTemplates := []string{
@@ -93,10 +95,9 @@ func (p *GuestHandler) RenderAdminOverview(c *gin.Context) {
 		return
 	}
 
-
 	langs, err := p.tStore.ListLanguages(c)
 	translations := make(map[string]map[string]string)
-	
+
 	for _, lang := range langs {
 		// TODO:: handle errors
 		translation, _ := p.tStore.ByLanguage(ctx, lang)
@@ -150,9 +151,9 @@ func (p *GuestHandler) RenderAdminOverview(c *gin.Context) {
 	}
 
 	p.tmplAdmin.Execute(c.Writer, gin.H{
-		"metadata": metadata,
-		"table":    table,
-		"status":   status,
+		"metadata":     metadata,
+		"table":        table,
+		"status":       status,
 		"translations": translations,
 	})
 }
@@ -561,9 +562,27 @@ func (p *GuestHandler) CreateAirport(c *gin.Context) {
 		span.RecordError(err)
 		return
 	}
-	e.Airports = append(e.Airports, &model.Location{})
+	newAirport := &model.Location{ID: uuid.New()}
+	e.Airports = append(e.Airports, newAirport)
 	if err := p.eStore.UpdateEvent(ctx, e); err != nil {
 		span.RecordError(err)
+	}
+
+	wrapperTemplate, _ := template.New("wrapper").Parse("{{ template \"ADMIN_EVENT_LOCATION_AIRPORT\" .airport}}")
+	t, err := wrapperTemplate.ParseFS(templates, "admin.event.location.html", "admin.event.location.airport.html")
+	if err != nil {
+		span.RecordError(err)
+		p.logger.ErrorContext(ctx, "unable to parse invitation-table-row template", "error", err)
+		return
+	}
+
+	err = t.Execute(c.Writer, gin.H{
+		"airport": newAirport,
+	})
+	if err != nil {
+		span.RecordError(err)
+		p.logger.ErrorContext(ctx, "unable to execute invitation-table-row template", "error", err)
+		return
 	}
 }
 
@@ -606,9 +625,27 @@ func (p *GuestHandler) CreateHotel(c *gin.Context) {
 		span.RecordError(err)
 		return
 	}
-	e.Hotels = append(e.Hotels, &model.Location{})
+	newHotel := &model.Location{ID: uuid.New()}
+	e.Hotels = append(e.Hotels, newHotel)
 	if err := p.eStore.UpdateEvent(ctx, e); err != nil {
 		span.RecordError(err)
+	}
+
+	wrapperTemplate, _ := template.New("wrapper").Parse("{{ template \"ADMIN_EVENT_LOCATION_HOTEL\" .hotel}}")
+	t, err := wrapperTemplate.ParseFS(templates, "admin.event.location.html", "admin.event.location.hotel.html")
+	if err != nil {
+		span.RecordError(err)
+		p.logger.ErrorContext(ctx, "unable to parse invitation-table-row template", "error", err)
+		return
+	}
+
+	err = t.Execute(c.Writer, gin.H{
+		"hotel": newHotel,
+	})
+	if err != nil {
+		span.RecordError(err)
+		p.logger.ErrorContext(ctx, "unable to execute invitation-table-row template", "error", err)
+		return
 	}
 }
 

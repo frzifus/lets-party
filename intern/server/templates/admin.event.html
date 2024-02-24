@@ -28,34 +28,19 @@
 
       <div class="flex flex-col gap-4">
         <h2>Hotels</h2>
-        {{ range .Hotels }}
+        {{ range .Hotels }} {{ template "ADMIN_EVENT_LOCATION_HOTEL" .}} {{ end
+        }}
+
         <div
-          class="flex flex-col gap-4 rounded-lg border border-gray-900/10 p-4"
+          class="flex md:flex-row flex-col gap-4"
+          id="event_hotels_add_container"
         >
-          {{ template "ADMIN_EVENT_LOCATION" . }}
-
-          <button
-            hx-delete="/admin/event/hotels/{{.ID}}"
-            hx-target="closest div"
-            hx-swap="outerHTML swap:0s"
-            type="button"
-            id="event.hotels.add"
-            data-te-ripple-init
-            data-te-ripple-color="light"
-            class="flex items-center justify-center gap-4 rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 w-fit"
-          >
-            <label class="cursor-pointer" for="event.hotels.add">Delete</label>
-          </button>
-        </div>
-        {{ end }}
-
-        <div class="flex md:flex-row flex-col gap-4">
           <button
             hx-post="/admin/event/hotels"
             hx-target="closest div"
-            hx-swap="beforeend hx-settle"
+            hx-swap="beforebegin hx-settle"
             type="button"
-            id="event.hotels.add"
+            id="#event_hotels_add_container"
             data-te-ripple-init
             data-te-ripple-color="light"
             class="flex items-center justify-center gap-4 rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
@@ -67,34 +52,19 @@
         </div>
       </div>
 
-      <div class="flex flex-col gap-4" id="admin.event.airports">
+      <div class="flex flex-col gap-4">
         <h2>Airports</h2>
-        {{ range .Airports }}
+        {{ range .Airports }} {{ template "ADMIN_EVENT_LOCATION_AIRPORT" . }} {{
+        end }}
+
         <div
-          class="flex flex-col gap-4 rounded-lg border border-gray-900/10 p-4"
+          class="flex md:flex-row flex-col gap-4"
+          id="event_airports_add_container"
         >
-          {{ template "ADMIN_EVENT_LOCATION" . }}
-
-          <button
-            hx-delete="/admin/event/airports/{{.ID}}"
-            hx-target="closest div"
-            hx-swap="outerHTML swap:0s"
-            type="button"
-            id="event.airports.add"
-            data-te-ripple-init
-            data-te-ripple-color="light"
-            class="flex items-center justify-center gap-4 rounded-md bg-indigo-600 px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 w-fit"
-          >
-            <label class="cursor-pointer" for="event.airports.add">Delete</label>
-          </button>
-        </div>
-        {{ end }}
-
-        <div class="flex md:flex-row flex-col gap-4">
           <button
             hx-post="/admin/event/airports"
-            hx-target="#admin.event.airports"
-            hx-swap="beforeend hx-settle"
+            hx-target="#event_airports_add_container"
+            hx-swap="beforebegin hx-settle"
             type="button"
             id="event.airports.add"
             data-te-ripple-init
