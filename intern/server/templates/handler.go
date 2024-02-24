@@ -18,6 +18,7 @@ import (
 
 	"github.com/frzifus/lets-party/intern/db"
 	"github.com/frzifus/lets-party/intern/model"
+	"github.com/frzifus/lets-party/intern/parser/form"
 )
 
 //go:embed *.html
@@ -247,7 +248,13 @@ func (p *GuestHandler) Submit(c *gin.Context) {
 		if err != nil {
 			continue
 		}
-		guest.Parse(attrs)
+
+		if err := form.Unmarshal(attrs, guest); err != nil {
+			p.logger.ErrorContext(ctx, "could not parse guest", "error", err)
+			c.String(http.StatusBadRequest, "could not parse guest")
+			return
+		}
+
 		if err := p.gStore.UpdateGuest(ctx, guest); err != nil {
 			p.logger.ErrorContext(ctx, "could update guest", "error", err)
 		}
