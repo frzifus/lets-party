@@ -63,9 +63,19 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		gin.Recovery(), otelgin.Middleware(s.serviceName), slogAddTraceAttributes,
 	}
 
+	username := "admin"
+	if v, ok := os.LookupEnv("PARTY_ADMIN"); ok {
+		username = v
+	}
+
+	password := "admin"
+	if v, ok := os.LookupEnv("PARTY_PASSWORD"); ok {
+		password = v
+	}
+
 	adminArea := mux.Group("/admin")
 	adminArea.Use(append(middlewares, gin.BasicAuth(gin.Accounts{
-		"admin": "admin", // TODO: read from config, env variable...
+		username: password,
 	}))...)
 
 	staticDir, err := fs.Sub(staticFS, "static")
