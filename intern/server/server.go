@@ -83,7 +83,12 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	adminArea.GET("/", guestHandler.RenderAdminOverview)
 	adminArea.POST("/invitation", guestHandler.CreateInvitation)
+
 	adminArea.POST("/event", guestHandler.UpdateEvent)
+	adminArea.POST("/event/airports", guestHandler.CreateAirport)
+	adminArea.DELETE("/event/airports/:uuid", guestHandler.DeleteAirport)
+	adminArea.POST("/event/hotels", guestHandler.CreateHotel)
+	adminArea.DELETE("/event/hotels/:uuid", guestHandler.DeleteHotel)
 
 	mux.NoRoute(notFound)
 

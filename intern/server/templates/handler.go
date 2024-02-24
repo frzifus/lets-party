@@ -529,6 +529,96 @@ func (p *GuestHandler) renderGuestInputBlock(ctx context.Context, w gin.Response
 	}
 }
 
+func (p *GuestHandler) CreateAirport(c *gin.Context) {
+	var span trace.Span
+	ctx := c.Request.Context()
+	ctx, span = tracer.Start(ctx, "GuestHandler.CreateAirport")
+	defer span.End()
+	e, err := p.eStore.GetEvent(ctx)
+	if err != nil {
+		span.RecordError(err)
+		return
+	}
+	e.Airports = append(e.Airports, &model.Location{})
+	if err := p.eStore.UpdateEvent(ctx, e); err != nil {
+		span.RecordError(err)
+	}
+}
+
+func (p *GuestHandler) DeleteAirport(c *gin.Context) {
+	var span trace.Span
+	ctx := c.Request.Context()
+	ctx, span = tracer.Start(ctx, "GuestHandler.DeleteAirport")
+	defer span.End()
+
+	airportID, err := uuid.Parse(c.Param("uuid"))
+	if err != nil {
+		span.RecordError(err)
+		return
+	}
+	e, err := p.eStore.GetEvent(ctx)
+	if err != nil {
+		span.RecordError(err)
+		return
+	}
+
+	for i := 0; i < len(e.Airports); i++ {
+		if e.Airports[i].ID == airportID {
+			e.Airports = append(e.Airports[:i], e.Airports[i+1:]...)
+			break
+		}
+	}
+
+	if err := p.eStore.UpdateEvent(ctx, e); err != nil {
+		span.RecordError(err)
+	}
+}
+
+func (p *GuestHandler) CreateHotel(c *gin.Context) {
+	var span trace.Span
+	ctx := c.Request.Context()
+	ctx, span = tracer.Start(ctx, "GuestHandler.CreateHotel")
+	defer span.End()
+	e, err := p.eStore.GetEvent(ctx)
+	if err != nil {
+		span.RecordError(err)
+		return
+	}
+	e.Hotels = append(e.Hotels, &model.Location{})
+	if err := p.eStore.UpdateEvent(ctx, e); err != nil {
+		span.RecordError(err)
+	}
+}
+
+func (p *GuestHandler) DeleteHotel(c *gin.Context) {
+	var span trace.Span
+	ctx := c.Request.Context()
+	ctx, span = tracer.Start(ctx, "GuestHandler.DeleteHotel")
+	defer span.End()
+
+	hotelID, err := uuid.Parse(c.Param("uuid"))
+	if err != nil {
+		span.RecordError(err)
+		return
+	}
+	e, err := p.eStore.GetEvent(ctx)
+	if err != nil {
+		span.RecordError(err)
+		return
+	}
+
+	for i := 0; i < len(e.Hotels); i++ {
+		if e.Hotels[i].ID == hotelID {
+			e.Hotels = append(e.Hotels[:i], e.Hotels[i+1:]...)
+			break
+		}
+	}
+
+	if err := p.eStore.UpdateEvent(ctx, e); err != nil {
+		span.RecordError(err)
+	}
+}
+
 func (p *GuestHandler) UpdateEvent(c *gin.Context) {
 	var span trace.Span
 	ctx := c.Request.Context()
