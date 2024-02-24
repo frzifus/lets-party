@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"embed"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	flatten "github.com/jeremywohl/flatten/v2"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/frzifus/lets-party/intern/db"
@@ -37,6 +39,7 @@ func NewGuestHandler(
 		"admin.content.html",
 		"admin.event.html",
 		"admin.event.location.html",
+		"admin.translations.html",
 	}
 	invitationTemplates := []string{
 		"invitation.banner.html",
@@ -90,6 +93,24 @@ func (p *GuestHandler) RenderAdminOverview(c *gin.Context) {
 		return
 	}
 
+
+	langs, err := p.tStore.ListLanguages(c)
+	translations := make(map[string]map[string]string)
+	
+	for _, lang := range langs {
+		// TODO:: handle errors
+		translation, _ := p.tStore.ByLanguage(ctx, lang)
+		out, _ := json.Marshal(translation)
+		flattened, _ := flatten.FlattenString(string(out), "", flatten.DotStyle)
+		result := make(map[string]string)
+		_ = json.Unmarshal([]byte(flattened), &result)
+		translations[lang] = result
+	}
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
 	invs, err := p.iStore.ListInvitations(ctx)
 	if err != nil {
 		p.logger.ErrorContext(ctx, "could not list invitations", "error", err)
@@ -132,6 +153,7 @@ func (p *GuestHandler) RenderAdminOverview(c *gin.Context) {
 		"metadata": metadata,
 		"table":    table,
 		"status":   status,
+		"translations": translations,
 	})
 }
 

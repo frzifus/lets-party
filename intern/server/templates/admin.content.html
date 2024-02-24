@@ -1,7 +1,7 @@
 {{ define "CONTENT" }}
 
 <main class="flex flex-col flex-auto p-5 gap-4">
-  {{ template "ADMIN_EVENT" .metadata }}
+  {{ template "ADMIN_EVENT" .metadata }} {{ template "ADMIN_TRANSLATIONS" . }}
   <section id="guests" class="flex flex-col gap-4 w-full">
     <button
       hx-post="/admin/invitation"
