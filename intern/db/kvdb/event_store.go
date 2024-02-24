@@ -22,8 +22,15 @@ func NewEventStore(db *bolt.DB) (*EventStore, error) {
 		if err != nil {
 			return err
 		}
-		j, err := json.Marshal(createDemoEvent())
-		return bucket.Put([]byte(key), j)
+		res := bucket.Get([]byte(key))
+		if err := json.Unmarshal(res, &model.Event{}); err != nil {
+			j, err := json.Marshal(createDemoEvent())
+			if err != nil {
+				panic(err)
+			}
+			return bucket.Put([]byte(key), j)
+		}
+		return nil
 	})
 }
 
@@ -68,8 +75,8 @@ func (e *EventStore) UpdateEvent(ctx context.Context, in *model.Event) error {
 
 func createDemoEvent() *model.Event {
 	return &model.Event{
-		ID: uuid.MustParse("b0efa7fc-be99-4f5b-9fe8-1cd6cf6dd443"),
 		Location: &model.Location{
+			ID:           uuid.MustParse("851ec3b7-f4ce-4319-96f9-67cc755b06ec"),
 			Name:         "Party location",
 			ZipCode:      "1337",
 			Street:       "Milky Way",
@@ -81,6 +88,7 @@ func createDemoEvent() *model.Event {
 		},
 		Hotels: []*model.Location{
 			{
+				ID:           uuid.MustParse("4e657dd1-2f75-48c7-ac87-1d3da0cc9b93"),
 				Name:         "Demo Hotel 1",
 				ZipCode:      "1337",
 				Street:       "Milky Way",
@@ -93,6 +101,7 @@ func createDemoEvent() *model.Event {
 		},
 		Airports: []*model.Location{
 			{
+				ID:           uuid.MustParse("4716775f-575d-4524-a0bb-20630cb017b4"),
 				Name:         "Demo Airport 1",
 				ZipCode:      "1337",
 				Street:       "Milky Way",

@@ -242,7 +242,7 @@ func (p *GuestHandler) Submit(c *gin.Context) {
 		return
 	}
 
-	for id, attrs := range p.parseGuestForm(c.Request.PostForm) {
+	for id, attrs := range p.parseForm(c.Request.PostForm) {
 		guestID, err := uuid.Parse(id)
 		if err != nil {
 			continue
@@ -293,11 +293,11 @@ func (p *GuestHandler) Submit(c *gin.Context) {
 
 // key: guestID
 // val: from values
-func (p *GuestHandler) parseGuestForm(raw url.Values) map[string]url.Values {
+func (p *GuestHandler) parseForm(raw url.Values) map[string]url.Values {
 	input := make(map[string]url.Values)
 	for k, v := range raw {
 		got := strings.Split(k, ".")
-		if len(got) != 2 {
+		if len(got) < 2 {
 			continue
 		}
 		if input[got[0]] == nil {
@@ -547,11 +547,50 @@ func (p *GuestHandler) UpdateEvent(c *gin.Context) {
 		return
 	}
 
-	if err := form.Unmarshal(c.Request.PostForm, e); err != nil {
-		span.RecordError(err)
-		p.logger.ErrorContext(ctx, "could not parse event", "error", err)
-		c.String(http.StatusBadRequest, "could not parse event")
-		return
+	var eventData url.Values
+	raw := p.parseForm(c.Request.PostForm)
+	for k, v := range raw {
+		if k == e.ID.String() {
+			eventData = v
+			delete(raw, k)
+			break
+		}
+	}
+
+	{ // TODO: remove 2nd form unmarshal
+		if err := form.Unmarshal(eventData, e); err != nil {
+			span.RecordError(err)
+			p.logger.ErrorContext(ctx, "could not parse event date", "error", err)
+			c.String(http.StatusBadRequest, "could not parse event date")
+			return
+		}
+		// HACK: form unmarshal does not support embedded structs
+		if err := form.Unmarshal(eventData, e.Location); err != nil {
+			span.RecordError(err)
+			p.logger.ErrorContext(ctx, "could not parse event location", "error", err)
+			c.String(http.StatusBadRequest, "could not parse event location")
+			return
+		}
+	}
+
+	for id, ldata := range raw {
+		ldata["id"] = []string{id}
+		l := model.Location{}
+		if err := form.Unmarshal(ldata, &l); err != nil {
+			span.RecordError(err)
+			p.logger.ErrorContext(ctx, "could not parse other location", "error", err)
+			continue
+		}
+		for i := 0; i < len(e.Airports); i++ {
+			if l.ID == e.Airports[i].ID {
+				e.Airports[i] = &l
+			}
+		}
+		for i := 0; i < len(e.Hotels); i++ {
+			if l.ID == e.Hotels[i].ID {
+				e.Hotels[i] = &l
+			}
+		}
 	}
 
 	if err := p.eStore.UpdateEvent(ctx, e); err != nil {

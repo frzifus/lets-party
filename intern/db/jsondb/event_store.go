@@ -79,8 +79,8 @@ func (e *EventStore) loadFromFile() error {
 
 func createDemoEvent() *model.Event {
 	return &model.Event{
-		ID: uuid.MustParse("b0efa7fc-be99-4f5b-9fe8-1cd6cf6dd443"),
 		Location: &model.Location{
+			ID:           uuid.MustParse("851ec3b7-f4ce-4319-96f9-67cc755b06ec"),
 			Name:         "Party location",
 			ZipCode:      "1337",
 			Street:       "Milky Way",
@@ -92,8 +92,8 @@ func createDemoEvent() *model.Event {
 		},
 		Hotels: []*model.Location{
 			{
+				ID:           uuid.MustParse("4e657dd1-2f75-48c7-ac87-1d3da0cc9b93"),
 				Name:         "Demo Hotel 1",
-				Website:      "https://booking.com",
 				ZipCode:      "1337",
 				Street:       "Milky Way",
 				StreetNumber: "42",
@@ -105,6 +105,7 @@ func createDemoEvent() *model.Event {
 		},
 		Airports: []*model.Location{
 			{
+				ID:           uuid.MustParse("4716775f-575d-4524-a0bb-20630cb017b4"),
 				Name:         "Demo Airport 1",
 				ZipCode:      "1337",
 				Street:       "Milky Way",
