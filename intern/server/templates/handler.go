@@ -120,6 +120,7 @@ func (p *GuestHandler) RenderAdminOverview(c *gin.Context) {
 	}
 
 	status := struct {
+		Total    int
 		Pending  int
 		Accepted int
 		Rejected int
@@ -129,7 +130,6 @@ func (p *GuestHandler) RenderAdminOverview(c *gin.Context) {
 
 	for _, inv := range invs {
 		for _, gID := range inv.GuestIDs {
-			fmt.Println("request guest:", gID.String())
 			guest, err := p.gStore.GetGuestByID(ctx, gID)
 			if err != nil {
 				p.logger.WarnContext(
@@ -138,6 +138,7 @@ func (p *GuestHandler) RenderAdminOverview(c *gin.Context) {
 				)
 				continue
 			}
+			status.Total++
 			switch guest.InvitationStatus {
 			case model.InvitationStatusAccepted:
 				status.Accepted += 1
