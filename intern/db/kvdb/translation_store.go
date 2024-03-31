@@ -8,6 +8,8 @@ import (
 	"sort"
 
 	bolt "go.etcd.io/bbolt"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/frzifus/lets-party/intern/model"
@@ -31,11 +33,14 @@ func (t *TranslationStore) UpdateLanguages(ctx context.Context, translations map
 	ctx, span = tracer.Start(ctx, "UpdateLanguages")
 	defer span.End()
 
+	span.AddEvent("update languages", trace.WithAttributes(attribute.Int("count", len(translations))))
 	var err error
 	var data map[string][]byte
 	for language, translation := range translations {
 		if data[language], err = json.Marshal(translation); err != nil {
-			return fmt.Errorf("convert translation to json: %w", err)
+			tErr := fmt.Errorf("convert translation to json: %w", err)
+			span.SetStatus(codes.Error, tErr.Error())
+			return tErr
 		}
 	}
 	return t.db.Update(func(tx *bolt.Tx) error {
@@ -44,6 +49,7 @@ func (t *TranslationStore) UpdateLanguages(ctx context.Context, translations map
 			if err := bucket.Put([]byte(lang), translation); err != nil {
 				err := fmt.Errorf("update translation for language %q", lang)
 				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
 				return err
 			}
 		}
