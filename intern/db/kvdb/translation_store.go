@@ -35,7 +35,7 @@ func (t *TranslationStore) UpdateLanguages(ctx context.Context, translations map
 
 	span.AddEvent("update languages", trace.WithAttributes(attribute.Int("count", len(translations))))
 	var err error
-	var data map[string][]byte
+	data := make(map[string][]byte, len(translations))
 	for language, translation := range translations {
 		if data[language], err = json.Marshal(translation); err != nil {
 			tErr := fmt.Errorf("convert translation to json: %w", err)
