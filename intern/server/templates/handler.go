@@ -16,6 +16,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jeremywohl/flatten/v2"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/frzifus/lets-party/intern/db"
@@ -760,6 +762,13 @@ func (t *TranslationHandler) UpdateLanguage(c *gin.Context) {
 	ctx, span := tracer.Start(c, "TranslationHandler.UpdateLanguages")
 	defer span.End()
 
+	if err := c.Request.ParseForm(); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	span.AddEvent("Read form entries", trace.WithAttributes(attribute.Int("count", len(c.Request.Form))))
 	translationFormByLanguage := map[string]url.Values{}
 	for key, value := range c.Request.Form {
 		language, field, ok := strings.Cut(key, ".")
