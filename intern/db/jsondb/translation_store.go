@@ -8,8 +8,9 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/frzifus/lets-party/intern/model"
 	"go.opentelemetry.io/otel/trace"
+
+	"github.com/frzifus/lets-party/intern/model"
 )
 
 func NewTranslationStore(filename string) (*TranslationStore, error) {
@@ -87,5 +88,9 @@ func (t *TranslationStore) loadFromFile() error {
 }
 
 func (t *TranslationStore) CreateLanguage(context.Context, string, *model.Translation) error {
+	return errors.New("not implemented")
+}
+
+func (t *TranslationStore) UpdateLanguages(context.Context, map[string]*model.Translation) error {
 	return errors.New("not implemented")
 }

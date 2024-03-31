@@ -100,6 +100,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	adminArea.POST("/event/hotels", guestHandler.CreateHotel)
 	adminArea.DELETE("/event/hotels/:uuid", guestHandler.DeleteHotel)
 
+	translations := templates.NewTranslationHandler(s.tStore)
+	adminArea.POST("/translations", translations.UpdateLanguage)
+
 	mux.NoRoute(notFound)
 
 	mux.ServeHTTP(w, r)

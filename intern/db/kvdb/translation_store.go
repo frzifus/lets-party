@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"sort"
 
 	bolt "go.etcd.io/bbolt"
@@ -23,6 +24,31 @@ func NewTranslationStore(db *bolt.DB) (*TranslationStore, error) {
 
 type TranslationStore struct {
 	db *bolt.DB
+}
+
+func (t *TranslationStore) UpdateLanguages(ctx context.Context, translations map[string]*model.Translation) error {
+	var span trace.Span
+	ctx, span = tracer.Start(ctx, "UpdateLanguages")
+	defer span.End()
+
+	var err error
+	var data map[string][]byte
+	for language, translation := range translations {
+		if data[language], err = json.Marshal(translation); err != nil {
+			return fmt.Errorf("convert translation to json: %w", err)
+		}
+	}
+	return t.db.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(bucketTranslation))
+		for lang, translation := range data {
+			if err := bucket.Put([]byte(lang), translation); err != nil {
+				err := fmt.Errorf("update translation for language %q", lang)
+				span.RecordError(err)
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 func (t *TranslationStore) ListLanguages(ctx context.Context) ([]string, error) {
