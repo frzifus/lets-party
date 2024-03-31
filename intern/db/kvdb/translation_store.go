@@ -4,9 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"sort"
 
 	bolt "go.etcd.io/bbolt"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/frzifus/lets-party/intern/model"
@@ -23,6 +26,35 @@ func NewTranslationStore(db *bolt.DB) (*TranslationStore, error) {
 
 type TranslationStore struct {
 	db *bolt.DB
+}
+
+func (t *TranslationStore) UpdateLanguages(ctx context.Context, translations map[string]*model.Translation) error {
+	var span trace.Span
+	ctx, span = tracer.Start(ctx, "UpdateLanguages")
+	defer span.End()
+
+	span.AddEvent("update languages", trace.WithAttributes(attribute.Int("count", len(translations))))
+	var err error
+	data := make(map[string][]byte, len(translations))
+	for language, translation := range translations {
+		if data[language], err = json.Marshal(translation); err != nil {
+			tErr := fmt.Errorf("convert translation to json: %w", err)
+			span.SetStatus(codes.Error, tErr.Error())
+			return tErr
+		}
+	}
+	return t.db.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(bucketTranslation))
+		for lang, translation := range data {
+			if err := bucket.Put([]byte(lang), translation); err != nil {
+				err := fmt.Errorf("update translation for language %q", lang)
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 func (t *TranslationStore) ListLanguages(ctx context.Context) ([]string, error) {

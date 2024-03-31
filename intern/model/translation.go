@@ -1,19 +1,19 @@
 package model
 
 type Translation struct {
-	Title          string                     `json:"title"`
-	Greeting       string                     `json:"greeting"`
-	WelcomeMessage string                     `json:"welcome_message"`
-	FinalMessage   string                     `json:"final_message"`
-	GuestForm      TranslationGuestForm       `json:"guest_form"`
-	Location       TranslationLocationSection `json:"location"`
-	Hotels         TranslationHotelsSection   `json:"hotels"`
-	Airports       TranslationAirportsSection `json:"airports"`
-	Navigation     TranslationNavigation      `json:"navigation"`
-	FlagImgSrc     string                     `json:"flag_img_src"`
-	Error          Error                      `json:"error"`
-	Success        Success                    `json:"success"`
-	And            string                     `json:"and"`
+	Title          string                     `json:"title" form:"title"`
+	Greeting       string                     `json:"greeting" form:"greeting"`
+	WelcomeMessage string                     `json:"welcome_message" form:"welcome_message"`
+	FinalMessage   string                     `json:"final_message" form:"final_message"`
+	GuestForm      TranslationGuestForm       `json:"guest_form" form:"guest_form"`
+	Location       TranslationLocationSection `json:"location" form:"location"`
+	Hotels         TranslationHotelsSection   `json:"hotels" form:"hotels"`
+	Airports       TranslationAirportsSection `json:"airports" form:"airports"`
+	Navigation     TranslationNavigation      `json:"navigation" form:"navigation"`
+	FlagImgSrc     string                     `json:"flag_img_src" form:"flag_img_src"`
+	Error          Error                      `json:"error" form:"error"`
+	Success        Success                    `json:"success" form:"success"`
+	And            string                     `json:"and" form:"and"`
 }
 
 type TranslationGuestForm struct {

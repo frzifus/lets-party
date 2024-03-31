@@ -15,7 +15,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	flatten "github.com/jeremywohl/flatten/v2"
+	"github.com/jeremywohl/flatten/v2"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/frzifus/lets-party/intern/db"
@@ -746,6 +748,69 @@ func (p *GuestHandler) UpdateEvent(c *gin.Context) {
 	if err := p.eStore.UpdateEvent(ctx, e); err != nil {
 		span.RecordError(err)
 	}
+}
+
+type TranslationHandler struct {
+	tStore db.TranslationStore
+}
+
+func NewTranslationHandler(tStore db.TranslationStore) *TranslationHandler {
+	return &TranslationHandler{tStore: tStore}
+}
+
+func (t *TranslationHandler) UpdateLanguage(c *gin.Context) {
+	ctx, span := tracer.Start(c, "TranslationHandler.UpdateLanguages")
+	defer span.End()
+
+	if err := c.Request.ParseForm(); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	span.AddEvent("Read form entries", trace.WithAttributes(attribute.Int("count", len(c.Request.Form))))
+	translationFormByLanguage := map[string]url.Values{}
+	for key, value := range c.Request.Form {
+		language, field, ok := strings.Cut(key, ".")
+		if !ok {
+			err := fmt.Errorf("%q is not a valid key for updating language translations, expecting <lang>.<field>", key)
+			span.RecordError(err)
+			c.String(http.StatusBadRequest, err.Error())
+			return
+		}
+		if _, err := t.tStore.ByLanguage(ctx, language); err != nil {
+			err := fmt.Errorf("cannot fin language %q: %w", language, err)
+			span.RecordError(err)
+			c.String(http.StatusBadRequest, err.Error())
+			return
+		}
+		translation, ok := translationFormByLanguage[language]
+		if !ok {
+			translation = make(url.Values)
+		}
+		translation[field] = value
+		translationFormByLanguage[language] = translation
+	}
+
+	translations := map[string]*model.Translation{}
+	for language, translationForm := range translationFormByLanguage {
+		var t model.Translation
+		if err := form.Unmarshal(translationForm, &t); err != nil {
+			err := fmt.Errorf("unmarshal translation from form for language %q: %w", language, err)
+			span.RecordError(err)
+			c.String(http.StatusBadRequest, err.Error())
+			return
+		}
+		translations[language] = &t
+	}
+
+	if err := t.tStore.UpdateLanguages(ctx, translations); err != nil {
+		err := fmt.Errorf("update languages in store: %w", err)
+		span.RecordError(err)
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.Status(http.StatusNoContent)
 }
 
 func evalTemplate(msg string, data any) (string, error) {
