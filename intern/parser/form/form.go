@@ -81,7 +81,10 @@ func Unmarshal(input url.Values, target any) error {
 		case reflect.Struct:
 			newInput := make(url.Values, len(input))
 			for k, v := range input {
-				newInput[strings.TrimPrefix(k, fmt.Sprintf("%s.", fieldName))] = v
+				prefix := fmt.Sprintf("%s.", fieldName)
+				if strings.HasPrefix(k, prefix) {
+					newInput[strings.TrimPrefix(k, prefix)] = v
+				}
 			}
 
 			if err := Unmarshal(newInput, fieldVal.Addr().Interface()); err != nil {
