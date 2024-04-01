@@ -22,6 +22,7 @@ var staticFS embed.FS
 
 func NewServer(
 	serviceName string,
+	staticDir string,
 	iStore db.InvitationStore,
 	gStore db.GuestStore,
 	tStore db.TranslationStore,
@@ -30,6 +31,7 @@ func NewServer(
 	return &Server{
 		logger:      slog.Default().WithGroup("http"),
 		serviceName: serviceName,
+		staticDir:   staticDir,
 		iStore:      iStore,
 		gStore:      gStore,
 		tStore:      tStore,
@@ -39,6 +41,7 @@ func NewServer(
 
 type Server struct {
 	serviceName string
+	staticDir   string
 	logger      *slog.Logger
 	iStore      db.InvitationStore
 	gStore      db.GuestStore
@@ -78,10 +81,18 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		username: password,
 	}))...)
 
-	staticDir, err := fs.Sub(staticFS, "static")
-	if err != nil {
-		panic(err)
+	var staticDir fs.FS
+	var err error
+	switch {
+	case s.staticDir != "":
+		staticDir = os.DirFS(s.staticDir)
+	default:
+		staticDir, err = fs.Sub(staticFS, "static")
+		if err != nil {
+			panic(err)
+		}
 	}
+
 	mux.StaticFS("/static", http.FS(fs.FS(staticDir)))
 
 	mux.Use(append(middlewares, inviteExists(s.iStore))...)
