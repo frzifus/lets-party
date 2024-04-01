@@ -31,7 +31,7 @@ func main() {
 		dbStr       = flag.String("db", "json://testdata", "database connection string")
 		otlpAddr    = flag.String("otlp-grpc", "", "default otlp/gRPC address, by default disabled. Example value: localhost:4317")
 		logLevelArg = flag.String("log-level", "INFO", "log level")
-		staticDir   = flag.String("static-dir", "./intern/server/static", "path to static directory")
+		staticDir   = flag.String("static-dir", "", "path to static directory")
 	)
 	flag.Parse()
 	fmt.Println("logLevel", *logLevelArg)

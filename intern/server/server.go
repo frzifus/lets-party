@@ -1,6 +1,7 @@
 package server
 
 import (
+	"embed"
 	"io/fs"
 	"log/slog"
 	"net/http"
@@ -15,6 +16,9 @@ import (
 	"github.com/frzifus/lets-party/intern/db"
 	"github.com/frzifus/lets-party/intern/server/templates"
 )
+
+//go:embed all:static
+var staticFS embed.FS
 
 func NewServer(
 	serviceName string,
@@ -77,7 +81,19 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		username: password,
 	}))...)
 
-	mux.StaticFS("/static", http.FS(fs.FS(os.DirFS(s.staticDir))))
+	var staticDir fs.FS
+	var err error
+	switch {
+	case s.staticDir != "":
+		staticDir = os.DirFS(s.staticDir)
+	default:
+		staticDir, err = fs.Sub(staticFS, "static")
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	mux.StaticFS("/static", http.FS(fs.FS(staticDir)))
 
 	mux.Use(append(middlewares, inviteExists(s.iStore))...)
 	guestHandler := templates.NewGuestHandler(s.iStore, s.tStore, s.gStore, s.eStore)
