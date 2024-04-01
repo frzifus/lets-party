@@ -14,6 +14,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	txttemplate "text/template"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -65,19 +67,20 @@ func NewGuestHandler(
 
 	return &GuestHandler{
 		tmplAdmin: template.Must(template.ParseFS(templates, append(coreTemplates, adminTemplates...)...)),
-		tmplForm:  template.Must(template.ParseFS(templates, append(coreTemplates, invitationTemplates...)...)),
-		tmplLang:  template.Must(template.ParseFS(templates, append(coreTemplates, languageTemplates...)...)),
-		iStore:    iStore,
-		gStore:    gStore,
-		tStore:    tStore,
-		eStore:    eStore,
-		logger:    slog.Default().WithGroup("http"),
+		// NOTE: workaround to allow html formatting
+		tmplForm: txttemplate.Must(txttemplate.ParseFS(templates, append(coreTemplates, invitationTemplates...)...)),
+		tmplLang: template.Must(template.ParseFS(templates, append(coreTemplates, languageTemplates...)...)),
+		iStore:   iStore,
+		gStore:   gStore,
+		tStore:   tStore,
+		eStore:   eStore,
+		logger:   slog.Default().WithGroup("http"),
 	}
 }
 
 type GuestHandler struct {
 	tmplAdmin *template.Template
-	tmplForm  *template.Template
+	tmplForm  *txttemplate.Template
 	tmplLang  *template.Template
 	iStore    db.InvitationStore
 	gStore    db.GuestStore
@@ -243,6 +246,27 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 	}
 
 	translation.Greeting, err = evalTemplate(translation.Greeting, guestsGreetList)
+	if err != nil {
+		p.logger.ErrorContext(ctx, "could not populate translation", "error", err)
+		c.String(http.StatusInternalServerError, "could not render translation")
+		return
+	}
+
+	cetLocation, err := time.LoadLocation("CET")
+	if err != nil {
+		panic(err)
+	}
+
+	helper := map[string]string{
+		"newline":      "<br />",
+		"bolt":         "<b>",
+		"boltend":      "</b>",
+		"locationname": metadata.Name,
+		"partytimeUTC": metadata.Date.UTC().Format("3:04 PM MST"),
+		"partytimeCET": metadata.Date.In(cetLocation).Format("15:04 PM MST"),
+	}
+
+	translation.WelcomeMessage, err = evalTemplateUnsafe(translation.WelcomeMessage, helper)
 	if err != nil {
 		p.logger.ErrorContext(ctx, "could not populate translation", "error", err)
 		c.String(http.StatusInternalServerError, "could not render translation")
@@ -873,6 +897,19 @@ func (t *TranslationHandler) UpdateLanguage(c *gin.Context) {
 
 func evalTemplate(msg string, data any) (string, error) {
 	t, err := template.New("tmp").Parse(msg)
+	if err != nil {
+		return "", err
+	}
+	var buf bytes.Buffer
+	if err := t.Execute(&buf, data); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
+}
+
+func evalTemplateUnsafe(msg string, data any) (string, error) {
+	// NOTE: workaround to allow html formatting
+	t, err := txttemplate.New("tmp").Parse(msg)
 	if err != nil {
 		return "", err
 	}
