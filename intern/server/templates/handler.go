@@ -97,6 +97,8 @@ func (p *GuestHandler) RenderAdminOverview(c *gin.Context) {
 
 	metadata, err := p.eStore.GetEvent(ctx)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		p.logger.ErrorContext(ctx, "could not find event", "error", err)
 		c.String(http.StatusInternalServerError, "could not find event")
 		return
@@ -115,12 +117,16 @@ func (p *GuestHandler) RenderAdminOverview(c *gin.Context) {
 		translations[lang] = result
 	}
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		c.Error(err)
 		return
 	}
 
 	invs, err := p.iStore.ListInvitations(ctx)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "could not list invitations")
 		p.logger.ErrorContext(ctx, "could not list invitations", "error", err)
 		c.String(http.StatusBadRequest, "could not list invitations")
 		return
@@ -158,12 +164,15 @@ func (p *GuestHandler) RenderAdminOverview(c *gin.Context) {
 		}
 	}
 
-	p.tmplAdmin.Execute(c.Writer, gin.H{
+	if err := p.tmplAdmin.Execute(c.Writer, gin.H{
 		"metadata":     metadata,
 		"table":        table,
 		"status":       status,
 		"translations": translations,
-	})
+	}); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "could not exec admin template")
+	}
 }
 
 func (p *GuestHandler) RenderForm(c *gin.Context) {
@@ -175,12 +184,16 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 	id := c.Param("uuid")
 	uid, err := uuid.Parse(id)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		c.Error(err)
 		return
 	}
 
 	invite, err := p.iStore.GetInvitationByID(c, uid)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		c.Error(err)
 		return
 	}
@@ -188,6 +201,12 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 	lang := c.Query("lang")
 	if lang == "" {
 		langs, err := p.tStore.ListLanguages(c)
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
+			c.Error(err)
+			return
+		}
 		languageOptions := make([]model.LanguageOption, len(langs))
 		i := 0
 		for _, lang := range langs {
@@ -201,10 +220,6 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 			}
 			i++
 		}
-		if err != nil {
-			c.Error(err)
-			return
-		}
 		if err := p.tmplLang.Execute(c.Writer, gin.H{"id": id, "languageOptions": languageOptions}); err != nil {
 			c.Error(err)
 		}
@@ -213,6 +228,8 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 
 	translation, err := p.tStore.ByLanguage(c, lang)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "unknown target language")
 		p.logger.ErrorContext(ctx, "unknown target language", "error", err)
 		c.String(http.StatusBadRequest, "unknown target language")
 		return
@@ -223,6 +240,8 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 		g, err := p.gStore.GetGuestByID(c, in)
 		if err != nil {
 			c.Error(err)
+			span.RecordError(err)
+			span.SetStatus(codes.Error, "unknown guest")
 			continue
 		}
 		guests = append(guests, g)
@@ -230,6 +249,8 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 
 	metadata, err := p.eStore.GetEvent(ctx)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "could not find event")
 		p.logger.ErrorContext(ctx, "could not find event", "error", err)
 		c.String(http.StatusInternalServerError, "could not find event")
 		return
@@ -247,8 +268,10 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 
 	translation.Greeting, err = evalTemplate(translation.Greeting, guestsGreetList)
 	if err != nil {
-		p.logger.ErrorContext(ctx, "could not populate translation", "error", err)
-		c.String(http.StatusInternalServerError, "could not render translation")
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "could not render greeting")
+		p.logger.ErrorContext(ctx, "could not render greeting", "error", err)
+		c.String(http.StatusInternalServerError, "could not render greeting")
 		return
 	}
 
@@ -268,17 +291,27 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 
 	translation.WelcomeMessage, err = evalTemplateUnsafe(translation.WelcomeMessage, helper)
 	if err != nil {
-		p.logger.ErrorContext(ctx, "could not populate translation", "error", err)
-		c.String(http.StatusInternalServerError, "could not render translation")
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "could not render welcome message")
+		p.logger.ErrorContext(ctx, "could not render welcome message", "error", err)
+		c.String(http.StatusInternalServerError, "could not render welcome message")
 		return
 	}
 
-	p.tmplForm.Execute(c.Writer, gin.H{
+	if err := p.tmplForm.Execute(c.Writer, gin.H{
 		"id":          id,
 		"metadata":    metadata,
 		"translation": translation,
 		"guests":      guests,
-	})
+	}); err != nil {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, "could exec form template")
+			p.logger.ErrorContext(ctx, "could exec form template", "error", err)
+			c.String(http.StatusInternalServerError, "could exec form template")
+			return
+		}
+	}
 }
 
 func (p *GuestHandler) Submit(c *gin.Context) {
@@ -289,6 +322,7 @@ func (p *GuestHandler) Submit(c *gin.Context) {
 
 	if err := c.Request.ParseForm(); err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, "could not parse form")
 		p.logger.ErrorContext(ctx, "could not parse form", "error", err)
 		c.String(http.StatusBadRequest, "could not parse form")
 		return
@@ -297,22 +331,28 @@ func (p *GuestHandler) Submit(c *gin.Context) {
 	for id, attrs := range p.parseForm(c.Request.PostForm) {
 		guestID, err := uuid.Parse(id)
 		if err != nil {
+			span.AddEvent("invalid guest ID")
 			continue
 		}
 		guest, err := p.gStore.GetGuestByID(ctx, guestID)
 		if err != nil {
+			span.AddEvent("could not load guest")
 			continue
 		}
 
 		if err := form.Unmarshal(attrs, guest); err != nil {
 			span.RecordError(err)
-			p.logger.ErrorContext(ctx, "could not parse guest", "error", err)
-			c.String(http.StatusBadRequest, "could not parse guest")
+			span.SetStatus(codes.Error, "could not unmarshal guest")
+			p.logger.ErrorContext(ctx, "could not unmarshal guest", "error", err)
+			c.String(http.StatusBadRequest, "could not unmarshal guest")
 			return
 		}
 
 		if err := p.gStore.UpdateGuest(ctx, guest); err != nil {
 			p.logger.ErrorContext(ctx, "could update guest", "error", err)
+			span.RecordError(err)
+			span.SetStatus(codes.Error, "could update guest")
+
 		}
 	}
 
@@ -328,6 +368,7 @@ func (p *GuestHandler) Submit(c *gin.Context) {
 	t, err := wrapperTemplate.ParseFS(templates, "toast.success.html")
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, "unable to parse toast.success template")
 		p.logger.ErrorContext(ctx, "unable to parse toast.success template", "error", err)
 		return
 	}
@@ -338,6 +379,7 @@ func (p *GuestHandler) Submit(c *gin.Context) {
 	})
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, "unable to execute toast.success template")
 		p.logger.ErrorContext(ctx, "unable to execute toast.success template", "error", err)
 		return
 	}
@@ -372,6 +414,7 @@ func (p *GuestHandler) CreateInvitation(c *gin.Context) {
 	invs, err := p.iStore.ListInvitations(ctx)
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, "could not list invitations")
 		p.logger.ErrorContext(ctx, "could not list invitations", "error", err)
 		c.String(http.StatusInternalServerError, "could not list invitations")
 		return
@@ -379,6 +422,7 @@ func (p *GuestHandler) CreateInvitation(c *gin.Context) {
 	if len(invs) >= 250 { // HACK
 		err := errors.New("maximum number of invitations exceeded")
 		span.RecordError(err)
+		span.SetStatus(codes.Error, "can not add more invitations to this event")
 		p.logger.ErrorContext(ctx, "can not add more invitations to this event", "error", err)
 		c.String(http.StatusForbidden, "can not add more invitations to this event")
 		return
@@ -388,6 +432,7 @@ func (p *GuestHandler) CreateInvitation(c *gin.Context) {
 	gID, err := p.gStore.CreateGuest(ctx, &model.Guest{})
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, "could not create guest")
 		p.logger.ErrorContext(ctx, "could not create guest", "error", err)
 		c.String(http.StatusBadRequest, "could not create guest")
 		return
@@ -396,6 +441,7 @@ func (p *GuestHandler) CreateInvitation(c *gin.Context) {
 	invite, err := p.iStore.CreateInvitation(ctx, gID)
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, "could not create invite")
 		p.logger.WarnContext(ctx, "could not create invite", "error", err)
 		c.String(http.StatusNotFound, "could not create invite")
 		return
@@ -405,6 +451,7 @@ func (p *GuestHandler) CreateInvitation(c *gin.Context) {
 	t, err := wrapperTemplate.ParseFS(templates, "admin.invitation-table-row.html")
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, "unable to parse invitation-table-row template")
 		p.logger.ErrorContext(ctx, "unable to parse invitation-table-row template", "error", err)
 		return
 	}
@@ -414,6 +461,7 @@ func (p *GuestHandler) CreateInvitation(c *gin.Context) {
 	})
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, "unable to execute invitation-table-row template")
 		p.logger.ErrorContext(ctx, "unable to execute invitation-table-row template", "error", err)
 		return
 	}
@@ -430,6 +478,7 @@ func (p *GuestHandler) Create(c *gin.Context) {
 		inviteID, err := uuid.Parse(c.Param("uuid"))
 		if err != nil {
 			span.RecordError(err)
+			span.SetStatus(codes.Error, "invalid inviteID")
 			p.logger.ErrorContext(ctx, "invalid inviteID", "error", err)
 			c.String(http.StatusBadRequest, "invalid inviteID")
 			return
@@ -438,6 +487,7 @@ func (p *GuestHandler) Create(c *gin.Context) {
 		invite, err := p.iStore.GetInvitationByID(ctx, inviteID)
 		if err != nil {
 			span.RecordError(err)
+			span.SetStatus(codes.Error, "invite not found")
 			p.logger.WarnContext(ctx, "invite not found", "error", err)
 			c.String(http.StatusNotFound, "invite not found")
 			return
@@ -446,6 +496,7 @@ func (p *GuestHandler) Create(c *gin.Context) {
 		if len(invite.GuestIDs) >= 10 { // HACK
 			err := errors.New("maximum number of guests exceeded")
 			span.RecordError(err)
+			span.SetStatus(codes.Error, "can not add more guests to invite")
 			p.logger.ErrorContext(ctx, "can not add more guests to invite", "error", err)
 			c.String(http.StatusForbidden, "can not add more guests to invite")
 			return
@@ -454,6 +505,7 @@ func (p *GuestHandler) Create(c *gin.Context) {
 		gID, err := p.gStore.CreateGuest(ctx, &model.Guest{Deleteable: true})
 		if err != nil {
 			span.RecordError(err)
+			span.SetStatus(codes.Error, "could not create guest")
 			p.logger.ErrorContext(ctx, "could not create guest", "error", err)
 			c.String(http.StatusBadRequest, "could not create guest")
 			return
@@ -461,6 +513,7 @@ func (p *GuestHandler) Create(c *gin.Context) {
 		invite.GuestIDs = append(invite.GuestIDs, gID)
 		if err := p.iStore.UpdateInvitation(ctx, invite); err != nil {
 			span.RecordError(err)
+			span.SetStatus(codes.Error, "unable to update invite")
 			p.logger.WarnContext(ctx, "unable to update invite", "error", err)
 			c.String(http.StatusInternalServerError, "unable to update invite")
 			return
@@ -483,12 +536,16 @@ func (p *GuestHandler) Delete(c *gin.Context) {
 
 	inviteID, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "invalid invite ID")
 		p.logger.ErrorContext(ctx, "invalid invite ID", "error", err)
 		c.String(http.StatusBadRequest, "invalid invite ID")
 		return
 	}
 	guestID, err := uuid.Parse(c.Param("guestid"))
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "invalid invite ID")
 		p.logger.ErrorContext(ctx, "invalid guest ID", "error", err)
 		c.String(http.StatusBadRequest, "invalid guest ID")
 		return
@@ -496,12 +553,16 @@ func (p *GuestHandler) Delete(c *gin.Context) {
 
 	guest, err := p.gStore.GetGuestByID(ctx, guestID)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "user not found")
 		p.logger.ErrorContext(ctx, "user not found", "error", err)
 		c.String(http.StatusNotFound, "user not found")
 		return
 	}
 
 	if !guest.Deleteable {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "user can not be deleted")
 		p.logger.ErrorContext(ctx, "user can not be deleted")
 		c.String(http.StatusForbidden, "user can not be deleted")
 		return
@@ -509,6 +570,8 @@ func (p *GuestHandler) Delete(c *gin.Context) {
 
 	invite, err := p.iStore.GetInvitationByID(ctx, inviteID)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "user does not belong to an invitation")
 		p.logger.ErrorContext(ctx, "user does not belong to an invitation", "error", err)
 		c.String(http.StatusNotFound, "user does not belong to an invitation")
 		return
@@ -516,12 +579,16 @@ func (p *GuestHandler) Delete(c *gin.Context) {
 	// TODO: tx
 	invite.RemoveGuest(guest.ID)
 	if err := p.iStore.UpdateInvitation(ctx, invite); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "unable to update invitation")
 		p.logger.ErrorContext(ctx, "unable to update invitation", "error", err)
 		c.String(http.StatusInternalServerError, "unable to update invitation")
 		return
 	}
 
 	if err := p.gStore.DeleteGuest(ctx, guest.ID); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "unable to delete guest")
 		p.logger.ErrorContext(ctx, "unable to delete guest", "error", err)
 		c.String(http.StatusNotFound, "unable to delete guest")
 		return
@@ -565,6 +632,7 @@ func (p *GuestHandler) renderGuestInputBlock(ctx context.Context, w gin.Response
 	t, err := wrapperTemplate.ParseFS(templates, "guest-input.html")
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, "unable to parse guest input template")
 		p.logger.ErrorContext(ctx, "unable to parse guest input template", "error", err)
 		return
 	}
@@ -576,6 +644,7 @@ func (p *GuestHandler) renderGuestInputBlock(ctx context.Context, w gin.Response
 	})
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, "unable to render guest input template")
 		p.logger.ErrorContext(ctx, "unable to render guest input template", "error", err)
 		return
 	}
@@ -589,18 +658,21 @@ func (p *GuestHandler) CreateAirport(c *gin.Context) {
 	e, err := p.eStore.GetEvent(ctx)
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return
 	}
 	newAirport := &model.Location{ID: uuid.New()}
 	e.Airports = append(e.Airports, newAirport)
 	if err := p.eStore.UpdateEvent(ctx, e); err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 	}
 
 	wrapperTemplate, _ := template.New("wrapper").Parse("{{ template \"ADMIN_EVENT_LOCATION_AIRPORT\" .airport}}")
 	t, err := wrapperTemplate.ParseFS(templates, "admin.event.location.html", "admin.event.location.airport.html")
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, "unable to parse invitation-table-row template")
 		p.logger.ErrorContext(ctx, "unable to parse invitation-table-row template", "error", err)
 		return
 	}
@@ -610,6 +682,7 @@ func (p *GuestHandler) CreateAirport(c *gin.Context) {
 	})
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, "unable to execute invitation-table-row template")
 		p.logger.ErrorContext(ctx, "unable to execute invitation-table-row template", "error", err)
 		return
 	}
@@ -624,11 +697,13 @@ func (p *GuestHandler) DeleteAirport(c *gin.Context) {
 	airportID, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return
 	}
 	e, err := p.eStore.GetEvent(ctx)
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return
 	}
 
@@ -641,6 +716,7 @@ func (p *GuestHandler) DeleteAirport(c *gin.Context) {
 
 	if err := p.eStore.UpdateEvent(ctx, e); err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 	}
 }
 
@@ -652,18 +728,21 @@ func (p *GuestHandler) CreateHotel(c *gin.Context) {
 	e, err := p.eStore.GetEvent(ctx)
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return
 	}
 	newHotel := &model.Location{ID: uuid.New()}
 	e.Hotels = append(e.Hotels, newHotel)
 	if err := p.eStore.UpdateEvent(ctx, e); err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 	}
 
 	wrapperTemplate, _ := template.New("wrapper").Parse("{{ template \"ADMIN_EVENT_LOCATION_HOTEL\" .hotel}}")
 	t, err := wrapperTemplate.ParseFS(templates, "admin.event.location.html", "admin.event.location.hotel.html")
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, "unable to parse invitation-table-row template")
 		p.logger.ErrorContext(ctx, "unable to parse invitation-table-row template", "error", err)
 		return
 	}
@@ -673,6 +752,7 @@ func (p *GuestHandler) CreateHotel(c *gin.Context) {
 	})
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, "unable to execute invitation-table-row template")
 		p.logger.ErrorContext(ctx, "unable to execute invitation-table-row template", "error", err)
 		return
 	}
@@ -687,11 +767,13 @@ func (p *GuestHandler) DeleteHotel(c *gin.Context) {
 	hotelID, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return
 	}
 	e, err := p.eStore.GetEvent(ctx)
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		return
 	}
 
@@ -704,6 +786,7 @@ func (p *GuestHandler) DeleteHotel(c *gin.Context) {
 
 	if err := p.eStore.UpdateEvent(ctx, e); err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 	}
 }
 
@@ -715,11 +798,13 @@ func (p *GuestHandler) UpdateEvent(c *gin.Context) {
 	e, err := p.eStore.GetEvent(ctx)
 	if err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, "could not get event")
 		return
 	}
 
 	if err := c.Request.ParseForm(); err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, "could not parse form")
 		p.logger.ErrorContext(ctx, "could not parse form", "error", err)
 		c.String(http.StatusBadRequest, "could not parse form")
 		return
@@ -738,6 +823,7 @@ func (p *GuestHandler) UpdateEvent(c *gin.Context) {
 	{ // TODO: remove 2nd form unmarshal
 		if err := form.Unmarshal(eventData, e); err != nil {
 			span.RecordError(err)
+			span.SetStatus(codes.Error, "could not parse event date")
 			p.logger.ErrorContext(ctx, "could not parse event date", "error", err)
 			c.String(http.StatusBadRequest, "could not parse event date")
 			return
@@ -745,6 +831,7 @@ func (p *GuestHandler) UpdateEvent(c *gin.Context) {
 		// HACK: form unmarshal does not support embedded structs
 		if err := form.Unmarshal(eventData, e.Location); err != nil {
 			span.RecordError(err)
+			span.SetStatus(codes.Error, "could not parse event location")
 			p.logger.ErrorContext(ctx, "could not parse event location", "error", err)
 			c.String(http.StatusBadRequest, "could not parse event location")
 			return
@@ -756,6 +843,7 @@ func (p *GuestHandler) UpdateEvent(c *gin.Context) {
 		l := model.Location{}
 		if err := form.Unmarshal(ldata, &l); err != nil {
 			span.RecordError(err)
+			span.SetStatus(codes.Error, "could not parse other location")
 			p.logger.ErrorContext(ctx, "could not parse other location", "error", err)
 			continue
 		}
@@ -773,6 +861,7 @@ func (p *GuestHandler) UpdateEvent(c *gin.Context) {
 
 	if err := p.eStore.UpdateEvent(ctx, e); err != nil {
 		span.RecordError(err)
+		span.SetStatus(codes.Error, "could not update event")
 	}
 }
 
@@ -857,12 +946,14 @@ func (t *TranslationHandler) UpdateLanguage(c *gin.Context) {
 		if !ok {
 			err := fmt.Errorf("%q is not a valid key for updating language translations, expecting <lang>.<field>", key)
 			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			c.String(http.StatusBadRequest, err.Error())
 			return
 		}
 		if _, err := t.tStore.ByLanguage(ctx, language); err != nil {
 			err := fmt.Errorf("cannot fin language %q: %w", language, err)
 			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			c.String(http.StatusBadRequest, err.Error())
 			return
 		}
@@ -878,8 +969,9 @@ func (t *TranslationHandler) UpdateLanguage(c *gin.Context) {
 	for language, translationForm := range translationFormByLanguage {
 		var t model.Translation
 		if err := form.Unmarshal(translationForm, &t); err != nil {
-			err := fmt.Errorf("unmarshal translation from form for language %q: %w", language, err)
+			err := fmt.Errorf("unmarshal translation form for language %q: %w", language, err)
 			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			c.String(http.StatusBadRequest, err.Error())
 			return
 		}
@@ -889,6 +981,7 @@ func (t *TranslationHandler) UpdateLanguage(c *gin.Context) {
 	if err := t.tStore.UpdateLanguages(ctx, translations); err != nil {
 		err := fmt.Errorf("update languages in store: %w", err)
 		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
