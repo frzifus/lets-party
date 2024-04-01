@@ -16,6 +16,7 @@ import (
 	"strings"
 	txttemplate "text/template"
 	"time"
+	_ "time/tzdata"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
