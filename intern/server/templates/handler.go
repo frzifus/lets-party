@@ -11,6 +11,8 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -769,8 +771,64 @@ func (t *TranslationHandler) UpdateLanguage(c *gin.Context) {
 		return
 	}
 	span.AddEvent("Read form entries", trace.WithAttributes(attribute.Int("count", len(c.Request.Form))))
-	translationFormByLanguage := map[string]url.Values{}
+
+	const valueSep = "::"
+	// NOTE: In the following section, suffix numbers of transferred keys are
+	// removed and sorted into a list.
+	//
+	// e.g.:
+	// request.Form:
+	// en.optionX => d
+	// en.optionY.2 => c
+	// en.optionY.0 => a
+	// en.optionY.1 => b
+	//
+	// formValues:
+	// en.optionX => d
+	// en.option> => [a,b,c]
+	formValues := url.Values{}
 	for key, value := range c.Request.Form {
+		kk := strings.Split(key, ".")
+		if len(kk) < 1 {
+			formValues[key] = value
+			continue
+		}
+		idx, err := strconv.Atoi(kk[len(kk)-1])
+		if err != nil {
+			formValues[key] = value
+			continue
+		}
+		newKey := strings.Join(kk[:len(kk)-1], ".")
+		list, ok := formValues[newKey]
+		if !ok {
+			list = []string{}
+		}
+		for _, v := range value {
+			list = append(list, strings.Join([]string{strconv.Itoa(idx), v}, valueSep))
+		}
+		formValues[newKey] = list
+	}
+	for key, val := range formValues {
+		sort.Strings(val)
+		newVal := make([]string, len(val))
+		for i, vv := range val {
+			v := strings.Split(vv, valueSep)
+			if len(v) == 0 {
+				continue
+			}
+
+			_, err := strconv.Atoi(v[0])
+			if err != nil || len(v) <= 1 {
+				newVal[i] = v[0]
+				continue
+			}
+			newVal[i] = v[1]
+		}
+		formValues[key] = newVal
+	}
+
+	translationFormByLanguage := map[string]url.Values{}
+	for key, value := range formValues {
 		language, field, ok := strings.Cut(key, ".")
 		if !ok {
 			err := fmt.Errorf("%q is not a valid key for updating language translations, expecting <lang>.<field>", key)
