@@ -31,6 +31,7 @@ func main() {
 		dbStr       = flag.String("db", "json://testdata", "database connection string")
 		otlpAddr    = flag.String("otlp-grpc", "", "default otlp/gRPC address, by default disabled. Example value: localhost:4317")
 		logLevelArg = flag.String("log-level", "INFO", "log level")
+		staticDir   = flag.String("static-dir", "./intern/server/static", "path to static directory")
 	)
 	flag.Parse()
 	fmt.Println("logLevel", *logLevelArg)
@@ -46,6 +47,7 @@ func main() {
 	slog.SetDefault(logger)
 	logger.Info("start and listen", "address", addr)
 	logger.Info("otlp/gRPC", "address", otlpAddr, "service", serviceName)
+	logger.Info("static-dir", "directory", staticDir)
 
 	if *otlpAddr != "" {
 		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
@@ -146,6 +148,7 @@ func main() {
 		Addr: *addr,
 		Handler: server.NewServer(
 			*serviceName,
+			*staticDir,
 			invitationStore,
 			guestsStore,
 			translationStore,

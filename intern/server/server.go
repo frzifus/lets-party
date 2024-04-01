@@ -1,7 +1,6 @@
 package server
 
 import (
-	"embed"
 	"io/fs"
 	"log/slog"
 	"net/http"
@@ -17,11 +16,9 @@ import (
 	"github.com/frzifus/lets-party/intern/server/templates"
 )
 
-//go:embed all:static
-var staticFS embed.FS
-
 func NewServer(
 	serviceName string,
+	staticDir string,
 	iStore db.InvitationStore,
 	gStore db.GuestStore,
 	tStore db.TranslationStore,
@@ -30,6 +27,7 @@ func NewServer(
 	return &Server{
 		logger:      slog.Default().WithGroup("http"),
 		serviceName: serviceName,
+		staticDir:   staticDir,
 		iStore:      iStore,
 		gStore:      gStore,
 		tStore:      tStore,
@@ -39,6 +37,7 @@ func NewServer(
 
 type Server struct {
 	serviceName string
+	staticDir   string
 	logger      *slog.Logger
 	iStore      db.InvitationStore
 	gStore      db.GuestStore
@@ -78,11 +77,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		username: password,
 	}))...)
 
-	staticDir, err := fs.Sub(staticFS, "static")
-	if err != nil {
-		panic(err)
-	}
-	mux.StaticFS("/static", http.FS(fs.FS(staticDir)))
+	mux.StaticFS("/static", http.FS(fs.FS(os.DirFS(s.staticDir))))
 
 	mux.Use(append(middlewares, inviteExists(s.iStore))...)
 	guestHandler := templates.NewGuestHandler(s.iStore, s.tStore, s.gStore, s.eStore)
