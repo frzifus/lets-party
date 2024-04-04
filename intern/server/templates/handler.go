@@ -821,22 +821,26 @@ func (p *GuestHandler) UpdateEvent(c *gin.Context) {
 		}
 	}
 
-	{ // TODO: remove 2nd form unmarshal
-		if err := form.Unmarshal(eventData, e); err != nil {
+	const layout = "2006-01-02 15:04:05 -0700 MST"
+	dateStr, ok := eventData["date"]
+	if ok && len(dateStr) == 1 {
+		ts, err := time.Parse(layout, dateStr[0])
+		if err != nil {
 			span.RecordError(err)
-			span.SetStatus(codes.Error, "could not parse event date")
-			p.logger.ErrorContext(ctx, "could not parse event date", "error", err)
-			c.String(http.StatusBadRequest, "could not parse event date")
+			span.SetStatus(codes.Error, "could not event date timestamp")
+			p.logger.ErrorContext(ctx, "could not event date timestamp", "error", err)
+			c.String(http.StatusBadRequest, "could not event date timestamp")
 			return
 		}
-		// HACK: form unmarshal does not support embedded structs
-		if err := form.Unmarshal(eventData, e.Location); err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, "could not parse event location")
-			p.logger.ErrorContext(ctx, "could not parse event location", "error", err)
-			c.String(http.StatusBadRequest, "could not parse event location")
-			return
-		}
+		e.Date = ts
+	}
+
+	if err := form.Unmarshal(eventData, e); err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "could not parse event")
+		p.logger.ErrorContext(ctx, "could not parse event", "error", err)
+		c.String(http.StatusBadRequest, "could not parse event")
+		return
 	}
 
 	for id, ldata := range raw {
@@ -848,13 +852,20 @@ func (p *GuestHandler) UpdateEvent(c *gin.Context) {
 			p.logger.ErrorContext(ctx, "could not parse other location", "error", err)
 			continue
 		}
+		lID, err := uuid.Parse(id)
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, "invalid uuid")
+			p.logger.ErrorContext(ctx, "invalid uuid", "error", err)
+			continue
+		}
 		for i := 0; i < len(e.Airports); i++ {
-			if l.ID == e.Airports[i].ID {
+			if lID == e.Airports[i].ID {
 				e.Airports[i] = &l
 			}
 		}
 		for i := 0; i < len(e.Hotels); i++ {
-			if l.ID == e.Hotels[i].ID {
+			if lID == e.Hotels[i].ID {
 				e.Hotels[i] = &l
 			}
 		}
