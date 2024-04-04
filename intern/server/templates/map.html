@@ -15,13 +15,13 @@
     <iframe
       width="425"
       height="350"
-      src="https://www.openstreetmap.org/export/embed.html?bbox=6.078829765319825%2C50.762399922244114%2C6.105909347534181%2C50.77302620762615&amp;layer=mapnik&amp;marker=50.76771336664125%2C6.092369556427002"
+      src="https://www.openstreetmap.org/export/embed.html?layer=mapnik&amp;marker={{ .metadata.Location.Latitude }}%2C{{ .metadata.Location.Longitude }}&amp;bbox={{ .metadata.Location.Longitude }}%2C{{ .metadata.Location.Latitude }}%2C{{ .metadata.Location.Longitude }}%2C{{ .metadata.Location.Latitude }}"
       style="border: 1px solid black"
       class="w-full rounded-md"
     ></iframe>
     <small>
       <a
-        href="https://www.openstreetmap.org/?mlat=50.7677&amp;mlon=6.0924#map=16/50.7677/6.0924"
+        href="https://www.openstreetmap.org/?mlat={{ .metadata.Location.Latitude }}&amp;mlon={{ .metadata.Location.Longitude }}#map=16/{{ .metadata.Location.Latitude }}/{{ .metadata.Location.Longitude }}"
         target="_blank"
         class="flex gap-1 mt-4 items-center justify-center w-fit"
       >
