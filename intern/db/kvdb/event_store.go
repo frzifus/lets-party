@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
 	bolt "go.etcd.io/bbolt"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/frzifus/lets-party/intern/model"
@@ -17,6 +19,8 @@ const bucketEvent = "event_store"
 
 func NewEventStore(db *bolt.DB) (*EventStore, error) {
 	const key = "event"
+
+	logger := slog.Default().WithGroup("kvdb")
 	return &EventStore{db: db, ekey: key}, db.Update(func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists([]byte(bucketEvent))
 		if err != nil {
@@ -24,6 +28,7 @@ func NewEventStore(db *bolt.DB) (*EventStore, error) {
 		}
 		res := bucket.Get([]byte(key))
 		if err := json.Unmarshal(res, &model.Event{}); err != nil {
+			logger.Warn("could not unmarshal event, create a new one", "error", err.Error())
 			j, err := json.Marshal(createDemoEvent())
 			if err != nil {
 				panic(err)
@@ -52,6 +57,7 @@ func (e *EventStore) GetEvent(ctx context.Context) (*model.Event, error) {
 		if res == nil {
 			err := errors.New("missing event")
 			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			return err
 		}
 		return json.Unmarshal(res, event)
@@ -67,6 +73,8 @@ func (e *EventStore) UpdateEvent(ctx context.Context, in *model.Event) error {
 		bucket := tx.Bucket([]byte(bucketEvent))
 		event, err := json.Marshal(in)
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			return err
 		}
 		return bucket.Put([]byte(e.ekey), event)
@@ -85,32 +93,6 @@ func createDemoEvent() *model.Event {
 			Country:      "Germany",
 			Longitude:    106.6333,
 			Latitude:     10.8167,
-		},
-		Hotels: []*model.Location{
-			{
-				ID:           uuid.MustParse("4e657dd1-2f75-48c7-ac87-1d3da0cc9b93"),
-				Name:         "Demo Hotel 1",
-				ZipCode:      "1337",
-				Street:       "Milky Way",
-				StreetNumber: "42",
-				City:         "Somewhere",
-				Country:      "Germany",
-				Longitude:    106.6333,
-				Latitude:     10.8167,
-			},
-		},
-		Airports: []*model.Location{
-			{
-				ID:           uuid.MustParse("4716775f-575d-4524-a0bb-20630cb017b4"),
-				Name:         "Demo Airport 1",
-				ZipCode:      "1337",
-				Street:       "Milky Way",
-				StreetNumber: "42",
-				City:         "Somewhere",
-				Country:      "Germany",
-				Longitude:    106.6333,
-				Latitude:     10.8167,
-			},
 		},
 		Date: time.Date(2023, 12, 24, 0, 0, 0, 0, time.Local),
 	}

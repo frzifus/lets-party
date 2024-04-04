@@ -281,14 +281,14 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 		panic(err)
 	}
 
-	helper := map[string]string{
+	helper := map[string]any{
 		"newline":      "<br />",
 		"bolt":         "<b>",
 		"boltend":      "</b>",
 		"locationname": metadata.Name,
-		"partytimeUTC": metadata.Date.UTC().Format("3:04 PM MST"),
-		"partytimeCET": metadata.Date.In(cetLocation).Format("15:04 PM MST"),
-		"partydate":    metadata.Date.In(cetLocation).Format("2.January"),
+		"partytimeCET": metadata.Date.In(cetLocation).Format("15:04 MST"),
+		"partydate":    metadata.Date.In(cetLocation).Format("2. January"),
+		"isSingular":   len(guests) == 1,
 	}
 
 	translation.WelcomeMessage, err = evalTemplateUnsafe(translation.WelcomeMessage, helper)
