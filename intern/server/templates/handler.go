@@ -288,6 +288,7 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 		"locationname": metadata.Name,
 		"partytimeUTC": metadata.Date.UTC().Format("3:04 PM MST"),
 		"partytimeCET": metadata.Date.In(cetLocation).Format("15:04 PM MST"),
+		"partydate":    metadata.Date.In(cetLocation).Format("2nd January"),
 	}
 
 	translation.WelcomeMessage, err = evalTemplateUnsafe(translation.WelcomeMessage, helper)
