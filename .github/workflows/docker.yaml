@@ -2,7 +2,7 @@ name: Build and Publish Container Image
 
 on:
   workflow_run:
-    workflows: ["Go"]
+    workflows: ["Build and Test"]
     types:
       - completed
 
