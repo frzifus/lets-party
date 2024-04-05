@@ -25,7 +25,7 @@ func Unmarshal(input url.Values, target any) error {
 		field := ttype.Field(i)
 		fieldName := field.Tag.Get("form")
 
-		value, _ := input[fieldName]
+		value := input[fieldName]
 		if fieldName == "" || fieldName == "-" {
 			continue
 		}

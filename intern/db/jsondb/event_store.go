@@ -34,7 +34,7 @@ type EventStore struct {
 
 func (e *EventStore) GetEvent(ctx context.Context) (*model.Event, error) {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "GetEvent")
+	_, span = tracer.Start(ctx, "GetEvent")
 	defer span.End()
 
 	span.AddEvent("Lock")
@@ -47,7 +47,7 @@ func (e *EventStore) GetEvent(ctx context.Context) (*model.Event, error) {
 
 func (e *EventStore) UpdateEvent(ctx context.Context, _ *model.Event) error {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "UpdateEvent")
+	_, span = tracer.Start(ctx, "UpdateEvent")
 	defer span.End()
 
 	span.AddEvent("RLock")

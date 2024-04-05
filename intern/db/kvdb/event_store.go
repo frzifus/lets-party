@@ -46,7 +46,7 @@ type EventStore struct {
 
 func (e *EventStore) GetEvent(ctx context.Context) (*model.Event, error) {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "GetEvent")
+	_, span = tracer.Start(ctx, "GetEvent")
 	defer span.End()
 
 	span.AddEvent("View bucket")
@@ -66,7 +66,7 @@ func (e *EventStore) GetEvent(ctx context.Context) (*model.Event, error) {
 
 func (e *EventStore) UpdateEvent(ctx context.Context, in *model.Event) error {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "UpdateEvent")
+	_, span = tracer.Start(ctx, "UpdateEvent")
 	defer span.End()
 
 	return e.db.Update(func(tx *bolt.Tx) error {

@@ -111,7 +111,7 @@ func (g *GuestStore) UpdateGuest(ctx context.Context, guest *model.Guest) error 
 // ListGuests returns a list of all guests in the store.
 func (g *GuestStore) ListGuests(ctx context.Context) ([]*model.Guest, error) {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "ListGuests")
+	_, span = tracer.Start(ctx, "ListGuests")
 	defer span.End()
 
 	span.AddEvent("Lock")
@@ -130,7 +130,7 @@ func (g *GuestStore) ListGuests(ctx context.Context) ([]*model.Guest, error) {
 // GetGuestByID retrieves a guest by ID from the store.
 func (g *GuestStore) GetGuestByID(ctx context.Context, id uuid.UUID) (*model.Guest, error) {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "GetGuestByID")
+	_, span = tracer.Start(ctx, "GetGuestByID")
 	defer span.End()
 
 	span.AddEvent("RLock")
@@ -151,7 +151,7 @@ func (g *GuestStore) GetGuestByID(ctx context.Context, id uuid.UUID) (*model.Gue
 // saveToFile saves the current guest store to the JSON file.
 func (g *GuestStore) saveToFile(ctx context.Context) error {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "SaveToFile")
+	_, span = tracer.Start(ctx, "SaveToFile")
 	defer span.End()
 
 	fileData, err := json.MarshalIndent(g.guests, "", "  ")
@@ -189,7 +189,7 @@ func (g *GuestStore) loadFromFile() error {
 // DeleteGuest deletes an existing guest in the store and JSON file.
 func (g *GuestStore) DeleteGuest(ctx context.Context, guestID uuid.UUID) error {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "DeleteGuest")
+	_, span = tracer.Start(ctx, "DeleteGuest")
 	defer span.End()
 
 	if guestID == uuid.Nil {

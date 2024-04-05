@@ -28,7 +28,7 @@ type GuestStore struct {
 
 func (g *GuestStore) CreateGuest(ctx context.Context, guest *model.Guest) (uuid.UUID, error) {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "CreateGuest")
+	_, span = tracer.Start(ctx, "CreateGuest")
 	defer span.End()
 
 	if guest.ID == uuid.Nil {
@@ -49,7 +49,7 @@ func (g *GuestStore) CreateGuest(ctx context.Context, guest *model.Guest) (uuid.
 
 func (g *GuestStore) UpdateGuest(ctx context.Context, guest *model.Guest) error {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "UpdateGuest")
+	_, span = tracer.Start(ctx, "UpdateGuest")
 	defer span.End()
 
 	if guest.ID == uuid.Nil {
@@ -78,7 +78,7 @@ func (g *GuestStore) UpdateGuest(ctx context.Context, guest *model.Guest) error 
 
 func (g *GuestStore) DeleteGuest(ctx context.Context, guestID uuid.UUID) error {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "DeleteGuest")
+	_, span = tracer.Start(ctx, "DeleteGuest")
 	defer span.End()
 
 	if guestID == uuid.Nil {
@@ -95,7 +95,7 @@ func (g *GuestStore) DeleteGuest(ctx context.Context, guestID uuid.UUID) error {
 
 func (g *GuestStore) ListGuests(ctx context.Context) ([]*model.Guest, error) {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "ListGuests")
+	_, span = tracer.Start(ctx, "ListGuests")
 	defer span.End()
 
 	span.AddEvent("View bucket")
@@ -116,7 +116,7 @@ func (g *GuestStore) ListGuests(ctx context.Context) ([]*model.Guest, error) {
 
 func (g *GuestStore) GetGuestByID(ctx context.Context, guestID uuid.UUID) (*model.Guest, error) {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "GetGuestByID")
+	_, span = tracer.Start(ctx, "GetGuestByID")
 	defer span.End()
 	span.AddEvent("View bucket")
 	guest := &model.Guest{}
