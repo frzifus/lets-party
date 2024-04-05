@@ -1,11 +1,4 @@
-#Set directory paths
-ROOT_DIR=$(shell git rev-parse --show-toplevel)
-TOOLS_DIR=$(ROOT_DIR)/.tools
-
-#Set tool-paths for easier access
-LINT := $(TOOLS_DIR)/golangci-lint
-
-LETS_PARTY := $(ROOT_DIR)/bin/lets-party
+include ./Makefile.Common
 
 #RULES
 $(TOOLS_DIR):
@@ -24,26 +17,28 @@ build:
 	go build -v -o $(LETS_PARTY) $(ROOT_DIR)/cmd/server/main.go
 
 compilecheck:
-	CGO_ENABLED=0 go build -v ./...
+	$(GO_ENV)
+	go build -v ./...
 
 run: gofmt build
 	$(LETS_PARTY)
 
 gotest: 
-	CGO_ENABLED=0 go test -v ./... -failfast
+	$(GO_ENV)
+	go test -v ./... -failfast
 
 localtest: gofmt govet check-fmt
-	CGO_ENABLED=0 go test -v ./... -failfast
+	$(GO_ENV)
+	go test -v ./... -failfast
 
 gomoddownload:
 	go mod download -x
 
 install-gotools: $(TOOLS_DIR)
-	#install golangci-lint v1.57.2 (only for workflow)
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(TOOLS_DIR) v1.57.2 
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(TOOLS_DIR) $(GOLINT_VERSION) 
 
 golint:
 	$(LINT) run --verbose --allow-parallel-runners --timeout=10m 
 
 gotidy:
-	go mod tidy -compat=1.21
+	go mod tidy -compat=$(GO_VERSION)
