@@ -1,0 +1,130 @@
+name: Build and Test
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  go-versions:
+    name: Lookup Go versions
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.versions.outputs.matrix }}
+      version: ${{ steps.versions.outputs.go-mod-version }}
+      latest: ${{ steps.versions.outputs.latest }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - uses: arnested/go-version-action@v1
+        id: versions
+
+  setup-env:
+    runs-on: ubuntu-latest
+    needs: [go-versions]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ fromJSON(needs.go-versions.outputs.version) }}
+
+      - name: Install gomods
+        run: make gomoddownload
+
+      - name: Install tools
+        run: make install-gotools
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    needs: [setup-env, go-versions]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ fromJSON(needs.go-versions.outputs.version) }}
+
+      - name: Install gomods
+        run: make gomoddownload
+
+      - name: Install tools
+        run: make install-gotools
+
+      - name: Lint code
+        run: make golint
+
+  checks:
+    name: Checks
+    runs-on: ubuntu-latest
+    needs: [setup-env, go-versions]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ fromJSON(needs.go-versions.outputs.version) }}
+
+      - name: Check format
+        run: make check-fmt
+
+      - name: Check susp
+        run: make govet
+
+      - name: Compilecheck
+        run: make compilecheck
+
+  test:
+    name: Test
+    strategy:
+      matrix:
+        go-version: ${{ fromJSON(needs.go-versions.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    needs: [setup-env, go-versions, checks]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Test Go-version @version
+        if: startsWith( matrix.go-version , needs.go-versions.outputs.version )
+        run: make gotest 
+
+      - name: Test Go-version @latest
+        if: startsWith( matrix.go-version , needs.go-versions.outputs.latest )
+        run: make gotest 
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [go-versions, lint, test]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ fromJSON(needs.go-versions.outputs.version) }}
+
+      - name: Build
+        run: make build
+

@@ -33,7 +33,7 @@ type InvitationStore struct {
 
 func (i *InvitationStore) GetInvitationByID(ctx context.Context, inviteID uuid.UUID) (*model.Invitation, error) {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "GetInvitationByID")
+	_, span = tracer.Start(ctx, "GetInvitationByID")
 	defer span.End()
 
 	span.AddEvent("RLock")
@@ -102,7 +102,7 @@ func (i *InvitationStore) UpdateInvitation(ctx context.Context, invite *model.In
 
 func (i *InvitationStore) ListInvitations(ctx context.Context) ([]*model.Invitation, error) {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "ListInvitations")
+	_, span = tracer.Start(ctx, "ListInvitations")
 	defer span.End()
 
 	span.AddEvent("RLock")
@@ -123,7 +123,7 @@ func (i *InvitationStore) ListInvitations(ctx context.Context) ([]*model.Invitat
 // saveToFile saves the current invitation store to the JSON file.
 func (i *InvitationStore) saveToFile(ctx context.Context) error {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "SaveToFile")
+	_, span = tracer.Start(ctx, "SaveToFile")
 	defer span.End()
 
 	fileData, err := json.MarshalIndent(i.invitations, "", "  ")

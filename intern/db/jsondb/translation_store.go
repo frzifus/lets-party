@@ -33,7 +33,7 @@ type TranslationStore struct {
 
 func (t *TranslationStore) ListLanguages(ctx context.Context) ([]string, error) {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "ListLanguages")
+	_, span = tracer.Start(ctx, "ListLanguages")
 	defer span.End()
 
 	span.AddEvent("Lock")
@@ -53,7 +53,7 @@ func (t *TranslationStore) ListLanguages(ctx context.Context) ([]string, error) 
 
 func (t *TranslationStore) ByLanguage(ctx context.Context, l string) (*model.Translation, error) {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "ByLanguage")
+	_, span = tracer.Start(ctx, "ByLanguage")
 	defer span.End()
 
 	span.AddEvent("RLock")

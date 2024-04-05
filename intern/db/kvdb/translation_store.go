@@ -30,7 +30,7 @@ type TranslationStore struct {
 
 func (t *TranslationStore) UpdateLanguages(ctx context.Context, translations map[string]*model.Translation) error {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "UpdateLanguages")
+	_, span = tracer.Start(ctx, "UpdateLanguages")
 	defer span.End()
 
 	span.AddEvent("update languages", trace.WithAttributes(attribute.Int("count", len(translations))))
@@ -59,17 +59,22 @@ func (t *TranslationStore) UpdateLanguages(ctx context.Context, translations map
 
 func (t *TranslationStore) ListLanguages(ctx context.Context) ([]string, error) {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "ListLanguages")
+	_, span = tracer.Start(ctx, "ListLanguages")
 	defer span.End()
 
 	span.AddEvent("View bucket")
 	res := make([]string, 0)
 	return res, t.db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(bucketTranslation))
-		bucket.ForEach(func(k, _ []byte) error {
+		err := bucket.ForEach(func(k, _ []byte) error {
 			res = append(res, string(k))
 			return nil
 		})
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
+			return err
+		}
 		sort.Slice(res, func(i, j int) bool { return res[i] < res[j] })
 		return nil
 	})
@@ -77,7 +82,7 @@ func (t *TranslationStore) ListLanguages(ctx context.Context) ([]string, error) 
 
 func (t *TranslationStore) ByLanguage(ctx context.Context, l string) (*model.Translation, error) {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "ByLanguage")
+	_, span = tracer.Start(ctx, "ByLanguage")
 	defer span.End()
 	span.AddEvent("View bucket")
 	translation := &model.Translation{}

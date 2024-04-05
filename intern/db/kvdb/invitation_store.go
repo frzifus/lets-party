@@ -27,7 +27,7 @@ type InvitationStore struct {
 
 func (i *InvitationStore) GetInvitationByID(ctx context.Context, inviteID uuid.UUID) (*model.Invitation, error) {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "GetInvitationByID")
+	_, span = tracer.Start(ctx, "GetInvitationByID")
 	defer span.End()
 
 	span.AddEvent("RLock")
@@ -43,7 +43,7 @@ func (i *InvitationStore) GetInvitationByID(ctx context.Context, inviteID uuid.U
 
 func (i *InvitationStore) CreateInvitation(ctx context.Context, guestIDs ...uuid.UUID) (*model.Invitation, error) {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "CreateInvitation")
+	_, span = tracer.Start(ctx, "CreateInvitation")
 	defer span.End()
 
 	span.AddEvent("Lock")
@@ -70,7 +70,7 @@ func (i *InvitationStore) CreateInvitation(ctx context.Context, guestIDs ...uuid
 
 func (i *InvitationStore) UpdateInvitation(ctx context.Context, invite *model.Invitation) error {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "UpdateInvitation")
+	_, span = tracer.Start(ctx, "UpdateInvitation")
 	defer span.End()
 
 	span.AddEvent("Lock")
@@ -94,7 +94,7 @@ func (i *InvitationStore) UpdateInvitation(ctx context.Context, invite *model.In
 
 func (i *InvitationStore) ListInvitations(ctx context.Context) ([]*model.Invitation, error) {
 	var span trace.Span
-	ctx, span = tracer.Start(ctx, "ListInvitations")
+	_, span = tracer.Start(ctx, "ListInvitations")
 	defer span.End()
 
 	span.AddEvent("RLock")

@@ -120,7 +120,7 @@ func (p *GuestHandler) RenderAdminOverview(c *gin.Context) {
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
-		c.Error(err)
+		_ = c.Error(err)
 		return
 	}
 
@@ -187,7 +187,7 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
-		c.Error(err)
+		_ = c.Error(err)
 		return
 	}
 
@@ -195,7 +195,7 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
-		c.Error(err)
+		_ = c.Error(err)
 		return
 	}
 
@@ -205,7 +205,7 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, err.Error())
-			c.Error(err)
+			_ = c.Error(err)
 			return
 		}
 		languageOptions := make([]model.LanguageOption, len(langs))
@@ -222,7 +222,7 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 			i++
 		}
 		if err := p.tmplLang.Execute(c.Writer, gin.H{"id": id, "languageOptions": languageOptions}); err != nil {
-			c.Error(err)
+			_ = c.Error(err)
 		}
 		return
 	}
@@ -240,7 +240,7 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 	for _, in := range invite.GuestIDs {
 		g, err := p.gStore.GetGuestByID(c, in)
 		if err != nil {
-			c.Error(err)
+			_ = c.Error(err)
 			span.RecordError(err)
 			span.SetStatus(codes.Error, "unknown guest")
 			continue
@@ -306,13 +306,11 @@ func (p *GuestHandler) RenderForm(c *gin.Context) {
 		"translation": translation,
 		"guests":      guests,
 	}); err != nil {
-		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, "could exec form template")
-			p.logger.ErrorContext(ctx, "could exec form template", "error", err)
-			c.String(http.StatusInternalServerError, "could exec form template")
-			return
-		}
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "could exec form template")
+		p.logger.ErrorContext(ctx, "could exec form template", "error", err)
+		c.String(http.StatusInternalServerError, "could exec form template")
+		return
 	}
 }
 
