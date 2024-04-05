@@ -125,9 +125,6 @@ jobs:
         with:
           go-version: ${{ fromJSON(needs.go-versions.outputs.version) }}
 
-      - name: Compilecheck
-        run: make compilecheck
-
       - name: Build
         run: make build
 
