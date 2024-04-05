@@ -1,9 +1,12 @@
-#Set directory paths
+# Set directory paths
 ROOT_DIR=$(shell git rev-parse --show-toplevel)
 TOOLS_DIR=$(ROOT_DIR)/.tools
 LETS_PARTY := $(ROOT_DIR)/bin/lets-party
 
-#Set tool-paths for easier access
+# Returns all .go-files
+ALL_GO_FILES=$(shell find $(ROOT_DIR) -type f -name "*.go")
+
+# Set tool-paths for easier access
 LINT := $(TOOLS_DIR)/golangci-lint
 
 # Env vars
@@ -12,3 +15,8 @@ GO_ENV=$(shell CGO_ENABLED=0)
 # Versioning
 GO_VERSION=1.21
 GOLINT_VERSION=v1.57.2
+
+# Licenseheader
+LICENSEHEAD_FIRST_LINE := // Copyright (C) 2024 the lets-party maintainers
+LICENSEHEAD_SECOND_LINE := // See root-dir/LICENSE for more information
+
