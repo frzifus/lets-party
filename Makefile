@@ -72,7 +72,7 @@ check-licensehead:
 		echo "License headers checked successfully."
 
 .PHONY: licensehead
-licensehead:
+licensehead: deletehead
 	@for f in $(ALL_GO_FILES); do \
 			first_line=$$(sed -n '1p' "$$f"); \
 			second_line=$$(sed -n '2p' "$$f"); \
