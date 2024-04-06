@@ -83,6 +83,9 @@ jobs:
       - name: Check susp
         run: make govet
 
+      - name: Check licenseheader
+        run: make check-licensehead
+
       - name: Compilecheck
         run: make compilecheck
 
