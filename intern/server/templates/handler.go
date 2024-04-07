@@ -864,11 +864,13 @@ func (p *GuestHandler) UpdateEvent(c *gin.Context) {
 		for i := 0; i < len(e.Airports); i++ {
 			if lID == e.Airports[i].ID {
 				e.Airports[i] = &l
+				e.Airports[i].ID = lID
 			}
 		}
 		for i := 0; i < len(e.Hotels); i++ {
 			if lID == e.Hotels[i].ID {
 				e.Hotels[i] = &l
+				e.Hotels[i].ID = lID
 			}
 		}
 	}
