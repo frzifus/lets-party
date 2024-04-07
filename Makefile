@@ -90,19 +90,15 @@ licensehead: deletehead
 .PHONY: deletehead
 deletehead:
 	@for f in $(ALL_GO_FILES); do \
-			first_line=$$(sed -n '1p' "$$f"); \
-			second_line=$$(sed -n '2p' "$$f"); \
-			third_line=$$(sed -n '3p' "$$f"); \
-			if [ -z "$$third_line"] && ([ "$$first_line" == "$(LICENSEHEAD_FIRST_LINE)" ] || [ "$$second_line" == "$(LICENSEHEAD_SECOND_LINE)" ]); then \
-				echo "Found: License header to delete in $$f"; \
-				sed -i '1,3d' "$$f"; \
-				echo "Deleted: License header deleted in $$f"; \
-			elif [ "$$first_line" == "$(LICENSEHEAD_FIRST_LINE)" ] || [ "$$second_line" == "$(LICENSEHEAD_SECOND_LINE)" ]; then \
-				echo "Found: License header to delete in $$f"; \
-				sed -i '1,2d' "$$f"; \
-				echo "Deleted: License header deleted in $$f"; \
+			if [ "$$(sed -n '1p' "$$f" | grep '^//')" ] && [ "$$(sed -n '2p' "$$f" | grep '^//')" ]; then \
+				if [ -z "$$(sed -n '3p' "$$f")" ]; then \
+					sed -i '1,3d' "$$f"; \
+				else \
+					sed -i '1,2d' "$$f"; \
+				fi; \
+				echo "Deleted: License headers deleted in $$f"; \
 			else \
-				echo "Not found: License header not found in $$f"; \
+				echo "Exit: There were no license headers found in $$f"; \
 			fi; \
 		done; \
 		echo "License headers deleted successfully."
