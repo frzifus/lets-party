@@ -845,7 +845,6 @@ func (p *GuestHandler) UpdateEvent(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(raw)
 	for id, ldata := range raw {
 		ldata["id"] = []string{id}
 		l := model.Location{}
