@@ -845,6 +845,7 @@ func (p *GuestHandler) UpdateEvent(c *gin.Context) {
 		return
 	}
 
+	fmt.Println(raw)
 	for id, ldata := range raw {
 		ldata["id"] = []string{id}
 		l := model.Location{}
@@ -854,7 +855,8 @@ func (p *GuestHandler) UpdateEvent(c *gin.Context) {
 			p.logger.ErrorContext(ctx, "could not parse other location", "error", err)
 			continue
 		}
-		lID, err := uuid.Parse(id)
+		var err error
+		l.ID, err = uuid.Parse(id)
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, "invalid uuid")
@@ -862,15 +864,13 @@ func (p *GuestHandler) UpdateEvent(c *gin.Context) {
 			continue
 		}
 		for i := 0; i < len(e.Airports); i++ {
-			if lID == e.Airports[i].ID {
+			if l.ID == e.Airports[i].ID {
 				e.Airports[i] = &l
-				e.Airports[i].ID = lID
 			}
 		}
 		for i := 0; i < len(e.Hotels); i++ {
-			if lID == e.Hotels[i].ID {
+			if l.ID == e.Hotels[i].ID {
 				e.Hotels[i] = &l
-				e.Hotels[i].ID = lID
 			}
 		}
 	}
