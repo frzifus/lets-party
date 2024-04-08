@@ -5,10 +5,12 @@ package server
 
 import (
 	"embed"
+	"errors"
 	"io/fs"
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -98,6 +100,12 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	mux.StaticFS("/static", http.FS(fs.FS(staticDir)))
 
+	//INFO: defines closing time to set read-only mode
+	closingTime, _ := time.Parse(time.RFC822, "01 May 24 10:00 CET")
+	if time.Now().After(closingTime) {
+		mux.Use(append(middlewares, readOnly())...)
+	}
+
 	mux.Use(append(middlewares, inviteExists(s.iStore))...)
 	guestHandler := templates.NewGuestHandler(s.iStore, s.tStore, s.gStore, s.eStore)
 	mux.GET("/:uuid", guestHandler.RenderForm)
@@ -149,4 +157,14 @@ func slogAddTraceAttributes(c *gin.Context) {
 		slog.String("span-id", trace.SpanFromContext(c.Request.Context()).SpanContext().SpanID().String()),
 	)
 	c.Next()
+}
+
+func readOnly() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if c.Request.Method == "POST" || c.Request.Method == "PUT" || c.Request.Method == "DELETE" {
+			slog.ErrorContext(c.Request.Context(), "readOnly-mode", "error", errors.New("request method not allowed"))
+			c.Abort()
+		}
+		c.Next()
+	}
 }
