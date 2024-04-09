@@ -855,6 +855,7 @@ func (p *GuestHandler) UpdateEvent(c *gin.Context) {
 			continue
 		}
 		var err error
+		// INFO: workaround(l.ID) until Unmarshal method is fully implemented
 		l.ID, err = uuid.Parse(id)
 		if err != nil {
 			span.RecordError(err)

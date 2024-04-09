@@ -9,6 +9,8 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 // Unmarshal parses the url.Values data and stores the result
@@ -93,6 +95,13 @@ func Unmarshal(input url.Values, target any) error {
 			if err := Unmarshal(newInput, fieldVal.Addr().Interface()); err != nil {
 				return err
 			}
+		case reflect.TypeOf(uuid.UUID{}).Kind():
+			if fieldValRaw == "" {
+				continue
+			}
+			parsedUUID := uuid.MustParse(fieldValRaw)
+
+			fieldVal.Set(reflect.ValueOf(parsedUUID))
 		default:
 			panic(fmt.Sprintf("unsupported type: %s", field.Type.String()))
 		}
