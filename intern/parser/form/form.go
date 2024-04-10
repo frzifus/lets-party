@@ -65,7 +65,9 @@ func Unmarshal(input url.Values, target any) error {
 				return err
 			}
 			fieldVal.SetFloat(fValue)
+
 		case reflect.Slice:
+			// TODO: needs some work for implementation of prim types
 			sliceValue := reflect.ValueOf(value)
 			for i := 0; i < sliceValue.Len(); i++ {
 				if isPrimitiveType(sliceValue.Type().Elem().Kind()) {
@@ -95,7 +97,7 @@ func Unmarshal(input url.Values, target any) error {
 			if err := Unmarshal(newInput, fieldVal.Addr().Interface()); err != nil {
 				return err
 			}
-		case reflect.TypeOf(uuid.UUID{}).Kind():
+		case reflect.Array:
 			if fieldValRaw == "" {
 				continue
 			}
