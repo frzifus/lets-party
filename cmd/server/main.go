@@ -35,6 +35,7 @@ func main() {
 		otlpAddr    = flag.String("otlp-grpc", "", "default otlp/gRPC address, by default disabled. Example value: localhost:4317")
 		logLevelArg = flag.String("log-level", "INFO", "log level")
 		staticDir   = flag.String("static-dir", "", "path to static directory")
+		deadline    = flag.String("deadline", "01 May 24 10:00 CET", "deadline for responses")
 	)
 	flag.Parse()
 	fmt.Println("logLevel", *logLevelArg)
@@ -72,6 +73,12 @@ func main() {
 		}
 		tp := sdktrace.NewTracerProvider(sdktrace.WithSyncer(otelExporter))
 		otel.SetTracerProvider(tp)
+	}
+
+	dline, err := time.Parse(time.RFC822, *deadline)
+	if err != nil {
+		logger.Error("failed to parse deadline", err)
+		os.Exit(1)
 	}
 
 	var (
@@ -152,6 +159,7 @@ func main() {
 		Handler: server.NewServer(
 			*serviceName,
 			*staticDir,
+			dline,
 			invitationStore,
 			guestsStore,
 			translationStore,

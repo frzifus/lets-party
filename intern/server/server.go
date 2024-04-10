@@ -28,6 +28,7 @@ var staticFS embed.FS
 func NewServer(
 	serviceName string,
 	staticDir string,
+	deadline time.Time,
 	iStore db.InvitationStore,
 	gStore db.GuestStore,
 	tStore db.TranslationStore,
@@ -37,6 +38,7 @@ func NewServer(
 		logger:      slog.Default().WithGroup("http"),
 		serviceName: serviceName,
 		staticDir:   staticDir,
+		deadline:    deadline,
 		iStore:      iStore,
 		gStore:      gStore,
 		tStore:      tStore,
@@ -47,6 +49,7 @@ func NewServer(
 type Server struct {
 	serviceName string
 	staticDir   string
+	deadline    time.Time
 	logger      *slog.Logger
 	iStore      db.InvitationStore
 	gStore      db.GuestStore
@@ -100,10 +103,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	mux.StaticFS("/static", http.FS(fs.FS(staticDir)))
 
-	//INFO: defines closing time to set read-only mode
-	closingTime, _ := time.Parse(time.RFC822, "01 May 24 10:00 CET")
-	if time.Now().After(closingTime) {
-		mux.Use(append(middlewares, readOnly())...)
+	if time.Now().After(s.deadline) {
+		mux.Use(append(middlewares, readOnly(s.logger))...)
 	}
 
 	mux.Use(append(middlewares, inviteExists(s.iStore))...)
@@ -159,10 +160,11 @@ func slogAddTraceAttributes(c *gin.Context) {
 	c.Next()
 }
 
-func readOnly() gin.HandlerFunc {
+func readOnly(logger *slog.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if c.Request.Method == "POST" || c.Request.Method == "PUT" || c.Request.Method == "DELETE" {
-			slog.ErrorContext(c.Request.Context(), "readOnly-mode", "error", errors.New("request method not allowed"))
+		if c.Request.Method != http.MethodGet {
+			logger.ErrorContext(c.Request.Context(), "readOnly-mode", "error", errors.New("request method not allowed"))
+			c.String(http.StatusMethodNotAllowed, "request method not allowed")
 			c.Abort()
 		}
 		c.Next()
