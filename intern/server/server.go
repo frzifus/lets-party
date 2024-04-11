@@ -103,8 +103,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	mux.StaticFS("/static", http.FS(fs.FS(staticDir)))
 
-	if time.Now().After(s.deadline) {
-		mux.Use(append(middlewares, readOnly(s.logger))...)
+	if !s.deadline.IsZero() {
+		mux.Use(append(middlewares, readOnly(s.logger, s.deadline))...)
 	}
 
 	mux.Use(append(middlewares, inviteExists(s.iStore))...)
@@ -160,12 +160,15 @@ func slogAddTraceAttributes(c *gin.Context) {
 	c.Next()
 }
 
-func readOnly(logger *slog.Logger) gin.HandlerFunc {
+func readOnly(logger *slog.Logger, deadline time.Time) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if c.Request.Method != http.MethodGet {
-			logger.ErrorContext(c.Request.Context(), "readOnly-mode", "error", errors.New("request method not allowed"))
-			c.String(http.StatusMethodNotAllowed, "request method not allowed")
-			c.Abort()
+		if deadline.Before(time.Now()) {
+			if c.Request.Method != http.MethodGet {
+				logger.ErrorContext(c.Request.Context(), "readOnly-mode", "error", errors.New("request method not allowed"))
+				c.String(http.StatusMethodNotAllowed, "request method not allowed")
+				c.Abort()
+			}
+			c.Next()
 		}
 		c.Next()
 	}
