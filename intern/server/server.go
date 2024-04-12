@@ -16,6 +16,7 @@ import (
 	"github.com/google/uuid"
 	sloggin "github.com/samber/slog-gin"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/frzifus/lets-party/intern/db"
@@ -162,9 +163,17 @@ func slogAddTraceAttributes(c *gin.Context) {
 
 func readOnly(logger *slog.Logger, deadline time.Time) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var span trace.Span
+		ctx := c.Request.Context()
+		ctx, span = tracer.Start(ctx, "Middleware.readOnly")
+		defer span.End()
+
 		if deadline.Before(time.Now()) {
 			if c.Request.Method != http.MethodGet {
-				logger.ErrorContext(c.Request.Context(), "readOnly-mode", "error", errors.New("request method not allowed"))
+				err := errors.New("request method not allowed")
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
+				logger.ErrorContext(ctx, "readOnly-mode", "error", err)
 				c.String(http.StatusMethodNotAllowed, "request method not allowed")
 				c.Abort()
 			}

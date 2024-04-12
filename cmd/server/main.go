@@ -79,6 +79,7 @@ func main() {
 	if *deadline != "" {
 		var err error
 		dline, err = time.Parse(time.RFC822, *deadline)
+		logger.Info("deadline set to", "date", *deadline)
 		if err != nil {
 			logger.Error("failed to parse deadline", err)
 			os.Exit(1)
