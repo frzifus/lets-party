@@ -5,15 +5,18 @@ package server
 
 import (
 	"embed"
+	"errors"
 	"io/fs"
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	sloggin "github.com/samber/slog-gin"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/frzifus/lets-party/intern/db"
@@ -26,6 +29,7 @@ var staticFS embed.FS
 func NewServer(
 	serviceName string,
 	staticDir string,
+	deadline time.Time,
 	iStore db.InvitationStore,
 	gStore db.GuestStore,
 	tStore db.TranslationStore,
@@ -35,6 +39,7 @@ func NewServer(
 		logger:      slog.Default().WithGroup("http"),
 		serviceName: serviceName,
 		staticDir:   staticDir,
+		deadline:    deadline,
 		iStore:      iStore,
 		gStore:      gStore,
 		tStore:      tStore,
@@ -45,6 +50,7 @@ func NewServer(
 type Server struct {
 	serviceName string
 	staticDir   string
+	deadline    time.Time
 	logger      *slog.Logger
 	iStore      db.InvitationStore
 	gStore      db.GuestStore
@@ -98,6 +104,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	mux.StaticFS("/static", http.FS(fs.FS(staticDir)))
 
+	if !s.deadline.IsZero() {
+		mux.Use(append(middlewares, readOnly(s.logger, s.deadline))...)
+	}
+
 	mux.Use(append(middlewares, inviteExists(s.iStore))...)
 	guestHandler := templates.NewGuestHandler(s.iStore, s.tStore, s.gStore, s.eStore)
 	mux.GET("/:uuid", guestHandler.RenderForm)
@@ -149,4 +159,26 @@ func slogAddTraceAttributes(c *gin.Context) {
 		slog.String("span-id", trace.SpanFromContext(c.Request.Context()).SpanContext().SpanID().String()),
 	)
 	c.Next()
+}
+
+func readOnly(logger *slog.Logger, deadline time.Time) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var span trace.Span
+		ctx := c.Request.Context()
+		ctx, span = tracer.Start(ctx, "Middleware.readOnly")
+		defer span.End()
+
+		if deadline.Before(time.Now()) {
+			if c.Request.Method != http.MethodGet {
+				err := errors.New("request method not allowed")
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
+				logger.ErrorContext(ctx, "readOnly-mode", "error", err)
+				c.String(http.StatusMethodNotAllowed, "request method not allowed")
+				c.Abort()
+			}
+			c.Next()
+		}
+		c.Next()
+	}
 }
