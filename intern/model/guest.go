@@ -32,7 +32,7 @@ type GuestAgeCategory int
 const (
 	GuestAgeCategoryUnknown GuestAgeCategory = iota
 	GuestAgeCategoryBaby
-        GuestAgeCategoryTeenager
+	GuestAgeCategoryTeenager
 	GuestAgeCategoryAdult
 )
 
