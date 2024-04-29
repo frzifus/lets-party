@@ -137,10 +137,24 @@ func (p *GuestHandler) RenderAdminOverview(c *gin.Context) {
 	}
 
 	status := struct {
-		Total    int
-		Pending  int
-		Accepted int
-		Rejected int
+		Invitations struct {
+			Total    int
+			Pending  int
+			Accepted int
+			Rejected int
+		}
+		Diet struct {
+			Unknown    int
+			Vegetarian int
+			Vegan      int
+			Omnivore   int
+		}
+		AgeCategory struct {
+			Unknown  int
+			Baby     int
+			Teenager int
+			Adult    int
+		}
 	}{}
 
 	table := make(map[uuid.UUID][]*model.Guest, len(invs))
@@ -155,14 +169,34 @@ func (p *GuestHandler) RenderAdminOverview(c *gin.Context) {
 				)
 				continue
 			}
-			status.Total++
+			status.Invitations.Total++
 			switch guest.InvitationStatus {
 			case model.InvitationStatusAccepted:
-				status.Accepted += 1
+				status.Invitations.Accepted += 1
+				switch guest.DietaryCategory {
+				case model.DietaryCategoryUnknown:
+					status.Diet.Unknown += 1
+				case model.DietaryCategoryVegan:
+					status.Diet.Vegan += 1
+				case model.DietaryCategoryVegetarian:
+					status.Diet.Vegetarian += 1
+				case model.DietaryCatagoryOmnivore:
+					status.Diet.Omnivore += 1
+				}
+				switch guest.AgeCategory {
+				case model.GuestAgeCategoryUnknown:
+					status.AgeCategory.Unknown += 1
+				case model.GuestAgeCategoryBaby:
+					status.AgeCategory.Baby += 1
+				case model.GuestAgeCategorTeenager:
+					status.AgeCategory.Teenager += 1
+				case model.GuestAgeCategoryAdult:
+					status.AgeCategory.Adult += 1
+				}
 			case model.InvitationStatusRejected:
-				status.Rejected += 1
+				status.Invitations.Rejected += 1
 			default:
-				status.Pending += 1
+				status.Invitations.Pending += 1
 			}
 			table[inv.ID] = append(table[inv.ID], guest)
 		}

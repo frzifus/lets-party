@@ -12,9 +12,62 @@
     >
       Create Invitation
     </button>
-    <p>
-      <b>Total:</b> {{ .status.Total }} <b>Pending:</b> {{ .status.Pending }}, <b>Accepted:</b> {{ .status.Accepted }}, <b>Rejected:</b> {{ .status.Rejected }}
-    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Invitations</th>
+          <th>Totoal</th>
+          <th>Pending</th>
+          <th>Accepted</th>
+          <th>Rejected</th>
+        </tr>
+      </thead>
+      <tbody style="text-align: center;">
+        <tr>
+          <td></td>
+          <td>{{ .status.Invitations.Total }} </td>
+          <td>{{ .status.Invitations.Pending }} </td>
+          <td>{{ .status.Invitations.Accepted }} </td>
+          <td>{{ .status.Invitations.Rejected }} </td>
+        </tr>
+      </tbody>      <thead>
+        <tr>
+          <th>Diet (Accepted)</th>
+          <th>Unknown</th>
+          <th>Vegan</th>
+          <th>Vegetarian</th>
+          <th>Omnivore</th>
+        </tr>
+      </thead>
+      <tbody style="text-align: center;">
+        <tr>
+          <td></td>
+          <td>{{ .status.Diet.Unknown }} </td>
+          <td>{{ .status.Diet.Vegan }} </td>
+          <td>{{ .status.Diet.Vegetarian }} </td>
+          <td>{{ .status.Diet.Omnivore }} </td>
+        </tr>
+      </tbody>
+    <thead>
+      <tr>
+        <th>Age (Accepted)</th>
+        <th>Unknown</th>
+        <th>Baby</th>
+        <th>Teenager</th>
+        <th>Adult</th>
+      </tr>
+    </thead>
+    <tbody style="text-align: center;">
+      <tr>
+        <td></td>
+        <td>{{ .status.AgeCategory.Unknown }} </td>
+        <td>{{ .status.AgeCategory.Baby }} </td>
+        <td>{{ .status.AgeCategory.Teenager }} </td>
+        <td>{{ .status.AgeCategory.Adult }} </td>
+      </tr>
+    </tbody>
+    </table>
     <div>
       <table class="table-auto w-full">
         <thead class="border-b">
