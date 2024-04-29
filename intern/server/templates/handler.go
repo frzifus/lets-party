@@ -188,7 +188,7 @@ func (p *GuestHandler) RenderAdminOverview(c *gin.Context) {
 					status.AgeCategory.Unknown += 1
 				case model.GuestAgeCategoryBaby:
 					status.AgeCategory.Baby += 1
-				case model.GuestAgeCategorTeenager:
+                                case model.GuestAgeCategoryTeenager:
 					status.AgeCategory.Teenager += 1
 				case model.GuestAgeCategoryAdult:
 					status.AgeCategory.Adult += 1
