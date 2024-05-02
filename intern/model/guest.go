@@ -30,9 +30,9 @@ const (
 type GuestAgeCategory int
 
 const (
-	GuestAgeCategoryUnknown InvitationStatus = iota
+	GuestAgeCategoryUnknown GuestAgeCategory = iota
 	GuestAgeCategoryBaby
-	GuestAgeCategorTeenager
+	GuestAgeCategoryTeenager
 	GuestAgeCategoryAdult
 )
 
