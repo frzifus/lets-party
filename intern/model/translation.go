@@ -61,8 +61,9 @@ type LanguageOption struct {
 }
 
 type Error struct {
-	Title   string `json:"title" form:"title"`
-	Process string `json:"process" form:"process"`
+	Title    string `json:"title" form:"title"`
+	Process  string `json:"process" form:"process"`
+	Deadline string `json:"deadline" form:"deadline"`
 }
 
 type Success struct {
