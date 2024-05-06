@@ -93,6 +93,18 @@ type GuestHandler struct {
 	logger    *slog.Logger
 }
 
+func NewErrorHandler(tStore db.TranslationStore) *ErrorHandler {
+	return &ErrorHandler{
+		tStore: tStore,
+		logger: slog.Default().WithGroup("http"),
+	}
+}
+
+type ErrorHandler struct {
+	tStore db.TranslationStore
+	logger *slog.Logger
+}
+
 func (p *GuestHandler) RenderAdminOverview(c *gin.Context) {
 	var span trace.Span
 	ctx := c.Request.Context()
@@ -401,7 +413,7 @@ func (p *GuestHandler) Submit(c *gin.Context) {
 		return
 	}
 
-	wrapperTemplate, _ := template.New("wrapper").Parse("{{ template \"TOAST_SUCESS\" .}}")
+	wrapperTemplate, _ := template.New("wrapper").Parse("{{ template \"TOAST_SUCCESS\" .}}")
 	t, err := wrapperTemplate.ParseFS(templates, "toast.success.html")
 	if err != nil {
 		span.RecordError(err)
@@ -418,6 +430,52 @@ func (p *GuestHandler) Submit(c *gin.Context) {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, "unable to execute toast.success template")
 		p.logger.ErrorContext(ctx, "unable to execute toast.success template", "error", err)
+		return
+	}
+}
+
+func (p *ErrorHandler) Handle(c *gin.Context, reason model.ErrorReason) {
+	var span trace.Span
+	ctx := c.Request.Context()
+	ctx, span = tracer.Start(ctx, "ErrorHandler.Handle")
+	defer span.End()
+
+	lang := c.Query("lang")
+	translation, err := p.tStore.ByLanguage(c, lang)
+	if err != nil {
+		p.logger.ErrorContext(ctx, "unknown target language", "error", err)
+		c.String(http.StatusBadRequest, "unknown target language")
+		return
+	}
+
+	wrapperTemplate, _ := template.New("wrapper").Parse("{{ template \"TOAST_ERROR\" .}}")
+	t, err := wrapperTemplate.ParseFS(templates, "toast.error.html")
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "unable to parse toast.error template")
+		p.logger.ErrorContext(ctx, "unable to parse toast.error template", "error", err)
+		return
+	}
+
+	var message string
+
+	switch reason {
+	case model.ErrorReasonDeadline:
+		message = translation.Error.Deadline
+	case model.ErrorReasonProcess:
+		message = translation.Error.Process
+	default:
+		message = translation.Error.Process
+	}
+
+	err = t.Execute(c.Writer, gin.H{
+		"Title":   translation.Error.Title,
+		"Message": message,
+	})
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "unable to execute toast.error template")
+		p.logger.ErrorContext(ctx, "unable to execute toast.error template", "error", err)
 		return
 	}
 }

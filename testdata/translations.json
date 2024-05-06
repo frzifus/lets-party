@@ -6,7 +6,8 @@
     "welcome_message": "Welcome to our website.",
     "error": {
       "title": "Oh no, an error occurred!",
-      "process": "Unfortunately, we were unable to process your request. Please try again and let us know if the error still occurs."
+      "process": "Unfortunately, we were unable to process your request. Please try again and let us know if the error still occurs.",
+      "deadline": "Unfortunately, we were unable to process your request as the deadline for adjustments has already expired."
     },
     "success": {
       "title": "🎉 Success 🎉"
@@ -51,7 +52,8 @@
     "welcome_message": "Guten Tag!",
     "error": {
       "title": "Oh nein, ein Fehler ist aufgetreten!",
-      "process": "Leider konnten wir Deine Anfrage nicht bearbeiten. Bitte versuche es erneut und teile uns mit, wenn der Fehler weiterhin auftritt."
+      "process": "Leider konnten wir Deine Anfrage nicht bearbeiten. Bitte versuche es erneut und teile uns mit, wenn der Fehler weiterhin auftritt.",
+      "deadline": "Leider konnten wir Deine Anfrage nicht bearbeiten, da die Frist für Anpassungen bereits abgelaufen ist."
     },
     "success": {
       "title": "🎉 Geschafft 🎉"

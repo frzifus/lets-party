@@ -20,6 +20,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/frzifus/lets-party/intern/db"
+	"github.com/frzifus/lets-party/intern/model"
 	"github.com/frzifus/lets-party/intern/server/templates"
 )
 
@@ -105,7 +106,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	mux.StaticFS("/static", http.FS(fs.FS(staticDir)))
 
 	if !s.deadline.IsZero() {
-		mux.Use(append(middlewares, readOnly(s.logger, s.deadline))...)
+		mux.Use(append(middlewares, readOnly(s.logger, s.deadline, s.tStore))...)
 	}
 
 	mux.Use(append(middlewares, inviteExists(s.iStore))...)
@@ -161,7 +162,7 @@ func slogAddTraceAttributes(c *gin.Context) {
 	c.Next()
 }
 
-func readOnly(logger *slog.Logger, deadline time.Time) gin.HandlerFunc {
+func readOnly(logger *slog.Logger, deadline time.Time, tStore db.TranslationStore) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var span trace.Span
 		ctx := c.Request.Context()
@@ -169,12 +170,15 @@ func readOnly(logger *slog.Logger, deadline time.Time) gin.HandlerFunc {
 		defer span.End()
 
 		if deadline.Before(time.Now()) {
+
+			errorHandler := templates.NewErrorHandler(tStore)
 			if c.Request.Method != http.MethodGet {
 				err := errors.New("request method not allowed")
 				span.RecordError(err)
 				span.SetStatus(codes.Error, err.Error())
 				logger.ErrorContext(ctx, "readOnly-mode", "error", err)
-				c.String(http.StatusMethodNotAllowed, "request method not allowed")
+				errorHandler.Handle(c, model.ErrorReasonDeadline)
+				c.Status(http.StatusMethodNotAllowed)
 				c.Abort()
 			}
 			c.Next()
