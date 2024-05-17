@@ -937,34 +937,6 @@ func (p *GuestHandler) UpdateEvent(c *gin.Context) {
 		return
 	}
 
-	for id, ldata := range raw {
-		ldata["id"] = []string{id}
-		l := model.Location{}
-		if err := form.Unmarshal(ldata, &l); err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, "could not parse other location")
-			p.logger.ErrorContext(ctx, "could not parse other location", "error", err)
-			continue
-		}
-		lID, err := uuid.Parse(id)
-		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, "invalid uuid")
-			p.logger.ErrorContext(ctx, "invalid uuid", "error", err)
-			continue
-		}
-		for i := 0; i < len(e.Airports); i++ {
-			if lID == e.Airports[i].ID {
-				e.Airports[i] = &l
-			}
-		}
-		for i := 0; i < len(e.Hotels); i++ {
-			if lID == e.Hotels[i].ID {
-				e.Hotels[i] = &l
-			}
-		}
-	}
-
 	if err := p.eStore.UpdateEvent(ctx, e); err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, "could not update event")

@@ -17,7 +17,7 @@ type Event struct {
 }
 
 type Location struct {
-	ID           uuid.UUID  `json:"id" form:"-"`
+	ID           uuid.UUID  `json:"id" form:"id"`
 	CreatedAt    *time.Time `json:"created_at" form:"-"`
 	UpdatedAt    *time.Time `json:"updated_at,omitempty" form:"-"`
 	Name         string     `json:"name,omitempty" form:"name"`
