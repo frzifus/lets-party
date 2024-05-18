@@ -1,0 +1,32 @@
+{{ define "NAV" }}
+
+<nav
+  class="bg-gray-800/60 bg-gradient-to-r/60 from-[#1f2937] from-1% via-[#371f2f] via-50% to-[#1f2937] to-99% w-full backdrop-blur-sm">
+  <div class="mx-auto w-full px-4 sm:px-6 lg:px-8 relative">
+    <div class="flex h-16 items-center justify-between">
+      <div class="flex space-between">
+        <div>
+          <div class="flex items-baseline space-x-4">
+            <a href="/"
+              class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium"
+              aria-current="page">Home</a>
+            <a href="#nav2"
+              class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium">Nav2</a>
+            <a href="#nav3"
+              class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium"
+              aria-current="page">Nav3</a>
+          </div>
+        </div>
+        <div class="flex items-baseline space-x-4 absolute right-10">
+          <a href="/login"
+            class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium"
+            aria-current="page">Login</a>
+          <a href="/register"
+            class="text-gray-300 bg-gray-700 text-white hover:bg-gray-800/60 bg-gradient-to-r/60 from-[#1f2937] from-1% via-[#371f2f] via-50% to-[#1f2937] to-99% w-full backdrop-blur-sm hover:text-white rounded-md px-3 py-2 text-sm font-medium">Register</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+{{ end }}

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎉</text></svg>"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/tw-elements@1.1.0/dist/css/tw-elements.min.css"
+      rel="stylesheet"
+    />
+    <title>{{.translation.Title}}</title>
+    <script src="https://unpkg.com/htmx.org@1.9.5"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    {{ template "STYLE" }}
+  </head>
+  <body class="flex flex-col min-h-screen">
+    {{ template "HEADER" .}} {{ template "CONTENT" .}} {{ template "FOOTER" .}}
+    <div
+      class="fixed z-[999] bottom-[25px] left-[25px] max-w-[calc(100vw-50px)]"
+      id="toast-container"
+    ></div>
+    <script type="importmap">
+      {
+        "imports": {
+          "tw-elements": "https://cdn.jsdelivr.net/npm/tw-elements@1.1.0/dist/js/tw-elements.es.min.js"
+        }
+      }
+    </script>
+    <script>
+      document.body.addEventListener("htmx:configRequest", function (event) {
+        let currentUrl = new URL(window.location.href);
+        event.detail.path += currentUrl.search;
+      });
+    </script>
+    <script type="module">
+      import { Ripple, initTE } from "tw-elements";
+
+      initTE({
+        Ripple,
+      });
+    </script>
+  </body>
+</html>
