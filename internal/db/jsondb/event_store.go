@@ -14,7 +14,7 @@ import (
 	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/quixsi/core/intern/model"
+	"github.com/quixsi/core/internal/model"
 )
 
 func NewEventStore(filename string) (*EventStore, error) {

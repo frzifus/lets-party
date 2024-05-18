@@ -6,7 +6,7 @@ package db
 import (
 	"context"
 
-	"github.com/quixsi/core/intern/model"
+	"github.com/quixsi/core/internal/model"
 )
 
 type TranslationStore interface {

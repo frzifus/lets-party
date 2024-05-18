@@ -13,7 +13,7 @@ import (
 	"github.com/google/uuid"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/quixsi/core/intern/model"
+	"github.com/quixsi/core/internal/model"
 )
 
 func NewInvitationStore(filename string) (*InvitationStore, error) {
