@@ -22,7 +22,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/quixsi/core/internal/db"
-	"github.com/quixsi/core/internal/db/jsondb"
 	"github.com/quixsi/core/internal/db/kvdb"
 	"github.com/quixsi/core/internal/server"
 )
@@ -31,7 +30,7 @@ func main() {
 	var (
 		serviceName = flag.String("service-name", "party-invite", "otel service name")
 		addr        = flag.String("addr", "0.0.0.0:8080", "default server address")
-		dbStr       = flag.String("db", "json://testdata", "database connection string")
+		dbStr       = flag.String("db", "kvdb://testdata/test.db", "database connection string")
 		otlpAddr    = flag.String("otlp-grpc", "", "default otlp/gRPC address, by default disabled. Example value: localhost:4317")
 		logLevelArg = flag.String("log-level", "INFO", "log level")
 		staticDir   = flag.String("static-dir", "", "path to static directory")
@@ -100,29 +99,6 @@ func main() {
 	}
 
 	switch u.Scheme {
-	case "json":
-		base := u.Host + u.Path
-		logger.Info("jsondb storage folder", "path", base)
-		guestsStore, err = jsondb.NewGuestStore(base + "/guests.json")
-		if err != nil {
-			logger.Error("could not initialize guest store", "error", err)
-			os.Exit(1)
-		}
-		translationStore, err = jsondb.NewTranslationStore(base + "/translations.json")
-		if err != nil {
-			logger.Error("could not initialize translation store", "error", err)
-			os.Exit(1)
-		}
-		invitationStore, err = jsondb.NewInvitationStore(base + "/invitations.json")
-		if err != nil {
-			logger.Error("could not initialize invitation store", "error", err)
-			os.Exit(1)
-		}
-		eventStore, err = jsondb.NewEventStore(base + "/event.json")
-		if err != nil {
-			logger.Error("could not initialize event store", "error", err)
-			os.Exit(1)
-		}
 	case "kvdb":
 		path := u.Host + u.Path
 		db, err := bolt.Open(path, 0600, nil)
