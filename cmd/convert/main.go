@@ -10,9 +10,9 @@ import (
 
 	bolt "go.etcd.io/bbolt"
 
-	"github.com/frzifus/lets-party/intern/db"
-	"github.com/frzifus/lets-party/intern/db/jsondb"
-	"github.com/frzifus/lets-party/intern/db/kvdb"
+	"github.com/quixsi/core/intern/db"
+	"github.com/quixsi/core/intern/db/jsondb"
+	"github.com/quixsi/core/intern/db/kvdb"
 )
 
 func main() {

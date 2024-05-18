@@ -21,10 +21,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/frzifus/lets-party/intern/db"
-	"github.com/frzifus/lets-party/intern/db/jsondb"
-	"github.com/frzifus/lets-party/intern/db/kvdb"
-	"github.com/frzifus/lets-party/intern/server"
+	"github.com/quixsi/core/intern/db"
+	"github.com/quixsi/core/intern/db/jsondb"
+	"github.com/quixsi/core/intern/db/kvdb"
+	"github.com/quixsi/core/intern/server"
 )
 
 func main() {

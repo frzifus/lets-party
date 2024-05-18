@@ -5,4 +5,4 @@ package server
 
 import "go.opentelemetry.io/otel"
 
-var tracer = otel.GetTracerProvider().Tracer("github.com/frzifus/lets-party/intern/server")
+var tracer = otel.GetTracerProvider().Tracer("github.com/quixsi/core/intern/server")

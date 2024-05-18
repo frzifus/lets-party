@@ -33,7 +33,7 @@ jobs:
           docker buildx create --use
           docker buildx build --push -f Containerfile \
             --platform linux/amd64,linux/arm64 \
-            -t ghcr.io/frzifus/lets-party:latest \
+            -t ghcr.io/quixsi/core:latest \
             .
           docker buildx stop
 
