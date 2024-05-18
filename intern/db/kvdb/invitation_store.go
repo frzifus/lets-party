@@ -12,7 +12,7 @@ import (
 	bolt "go.etcd.io/bbolt"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/frzifus/lets-party/intern/model"
+	"github.com/quixsi/core/intern/model"
 )
 
 const bucketInvitation = "invitation_store"

@@ -1,8 +1,8 @@
 FROM golang:1.22
 
-COPY . /go/src/github.com/frzifus/lets-party
+COPY . /go/src/github.com/quixsi/core
 
-WORKDIR /go/src/github.com/frzifus/lets-party
+WORKDIR /go/src/github.com/quixsi/core
 
 RUN CGO_ENABLED=0 go build -v -o /lets-party cmd/server/main.go
 

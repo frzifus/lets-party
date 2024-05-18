@@ -6,7 +6,7 @@ package db
 import (
 	"context"
 
-	"github.com/frzifus/lets-party/intern/model"
+	"github.com/quixsi/core/intern/model"
 )
 
 type TranslationStore interface {

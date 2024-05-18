@@ -5,4 +5,4 @@ package kvdb
 
 import "go.opentelemetry.io/otel"
 
-var tracer = otel.GetTracerProvider().Tracer("github.com/frzifus/lets-party/intern/db/kvdb")
+var tracer = otel.GetTracerProvider().Tracer("github.com/quixsi/core/intern/db/kvdb")

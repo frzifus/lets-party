@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/frzifus/lets-party/intern/model"
+	"github.com/quixsi/core/intern/model"
 )
 
 type GuestStore interface {

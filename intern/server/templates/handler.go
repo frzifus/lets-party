@@ -28,9 +28,9 @@ import (
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/frzifus/lets-party/intern/db"
-	"github.com/frzifus/lets-party/intern/model"
-	"github.com/frzifus/lets-party/intern/parser/form"
+	"github.com/quixsi/core/intern/db"
+	"github.com/quixsi/core/intern/model"
+	"github.com/quixsi/core/intern/parser/form"
 )
 
 //go:embed *.html

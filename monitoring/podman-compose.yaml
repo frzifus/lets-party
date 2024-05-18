@@ -48,7 +48,7 @@ services:
     restart: always
     networks:
       - backend
-    image: ghcr.io/frzifus/lets-party:${LETS_PARTY_TAG:-latest}
+    image: ghcr.io/quixsi/core:${LETS_PARTY_TAG:-latest}
     command: /lets-party -otlp-grpc=otel_collector:4317
     depends_on:
       - otel_collector

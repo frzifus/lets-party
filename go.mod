@@ -1,4 +1,4 @@
-module github.com/frzifus/lets-party
+module github.com/quixsi/core
 
 go 1.21
 
