@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/quixsi/core/intern/model"
+	"github.com/quixsi/core/internal/model"
 )
 
 type InvitationStore interface {

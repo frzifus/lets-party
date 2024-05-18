@@ -1,8 +1,8 @@
 // Copyright (C) 2024 the lets-party maintainers
 // See root-dir/LICENSE for more information
 
-package server
+package kvdb
 
 import "go.opentelemetry.io/otel"
 
-var tracer = otel.GetTracerProvider().Tracer("github.com/quixsi/core/intern/server")
+var tracer = otel.GetTracerProvider().Tracer("github.com/quixsi/core/internal/db/kvdb")

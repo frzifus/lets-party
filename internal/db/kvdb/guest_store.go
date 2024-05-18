@@ -13,7 +13,7 @@ import (
 	bolt "go.etcd.io/bbolt"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/quixsi/core/intern/model"
+	"github.com/quixsi/core/internal/model"
 )
 
 const bucketGuest = "guest_store"

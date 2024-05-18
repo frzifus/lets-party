@@ -13,7 +13,7 @@ import (
 
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/quixsi/core/intern/model"
+	"github.com/quixsi/core/internal/model"
 )
 
 func NewTranslationStore(filename string) (*TranslationStore, error) {
