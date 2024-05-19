@@ -45,9 +45,10 @@ localtest: gofmt govet check-fmt
 gomoddownload:
 	go mod download -x
 
-.PHONY: install-gotools
-install-gotools: $(TOOLS_DIR)
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(TOOLS_DIR) $(GOLINT_VERSION) 
+.PHONY: tools
+tools: $(TOOLS_DIR)
+	GOBIN=$(TOOLS_DIR) go install github.com/golangci/golangci-lint/cmd/golangci-lint@$(GOLINT_VERSION)
+	GOBIN=$(TOOLS_DIR) go install github.com/a-h/templ/cmd/templ@$(TEMPL_VERSION)
 
 .PHONY: golint
 golint:

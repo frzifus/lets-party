@@ -38,7 +38,7 @@ jobs:
         run: make gomoddownload
 
       - name: Install tools
-        run: make install-gotools
+        run: make tools
 
   lint:
     name: Lint
@@ -58,7 +58,7 @@ jobs:
         run: make gomoddownload
 
       - name: Install tools
-        run: make install-gotools
+        run: make tools
 
       - name: Lint code
         run: make golint
