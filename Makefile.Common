@@ -15,6 +15,7 @@ GO_ENV=$(shell CGO_ENABLED=0)
 # Versioning
 GO_VERSION=1.21
 GOLINT_VERSION=v1.57.2
+TEMPL_VERSION=v0.2.680
 
 # Licenseheader
 LICENSEHEAD_FIRST_LINE := // Copyright (C) 2024 the lets-party maintainers
