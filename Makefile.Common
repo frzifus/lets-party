@@ -8,16 +8,17 @@ ALL_GO_FILES=$(shell find $(ROOT_DIR) -type f -name "*.go")
 
 # Set tool-paths for easier access
 LINT := $(TOOLS_DIR)/golangci-lint
+TEMPL := $(TOOLS_DIR)/templ
 
 # Env vars
 GO_ENV=$(shell CGO_ENABLED=0)
 
 # Versioning
-GO_VERSION=1.21
+GO_VERSION=1.22
 GOLINT_VERSION=v1.57.2
 TEMPL_VERSION=v0.2.680
 
 # Licenseheader
-LICENSEHEAD_FIRST_LINE := // Copyright (C) 2024 the lets-party maintainers
+LICENSEHEAD_FIRST_LINE := // Copyright (C) 2024 the quixsi maintainers
 LICENSEHEAD_SECOND_LINE := // See root-dir/LICENSE for more information
 

@@ -77,6 +77,9 @@ jobs:
         with:
           go-version: ${{ fromJSON(needs.go-versions.outputs.version) }}
 
+      - name: Install tools format
+        run: make tools
+
       - name: Check format
         run: make check-fmt
 
@@ -108,11 +111,11 @@ jobs:
 
       - name: Test Go-version @version
         if: startsWith( matrix.go-version , needs.go-versions.outputs.version )
-        run: make gotest 
+        run: make gotest
 
       - name: Test Go-version @latest
         if: startsWith( matrix.go-version , needs.go-versions.outputs.latest )
-        run: make gotest 
+        run: make gotest
 
   build:
     name: Build
@@ -128,6 +131,8 @@ jobs:
         with:
           go-version: ${{ fromJSON(needs.go-versions.outputs.version) }}
 
+      - name: Install Tools
+        run: make tools
+
       - name: Build
         run: make build
-
