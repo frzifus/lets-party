@@ -1,4 +1,4 @@
-// Copyright (C) 2024 the lets-party maintainers
+// Copyright (C) 2024 the quixsi maintainers
 // See root-dir/LICENSE for more information
 
 package jsondb
