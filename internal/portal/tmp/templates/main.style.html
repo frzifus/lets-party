@@ -1,0 +1,26 @@
+{{ define "STYLE" }}
+
+<style>
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes slide-to-right {
+    from {
+      transform: translateX(-90px);
+    }
+  }
+
+  .slide-it {
+    view-transition-name: slide-it;
+  }
+
+  ::view-transition-new(slide-it) {
+    animation: 420ms cubic-bezier(0, 0, 0.2, 1) 90ms both fade-in,
+      600ms cubic-bezier(0.4, 0, 0.2, 1) both slide-to-right;
+  }
+</style>
+
+{{ end }}
